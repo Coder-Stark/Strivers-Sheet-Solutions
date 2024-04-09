@@ -468,7 +468,7 @@ Sample Output 2 :
 */
 
 
-//15. TWO SUM                                               {T.C = O(N), S.C = O(N)}
+//15. 2 SUM                                               {T.C = O(N), S.C = O(N)}
 //MAP
 class Solution {
 public:
@@ -501,7 +501,20 @@ public:
         return {};
     }
 };
+/*
+Example 1:
+Input: nums = [2,7,11,15], target = 9
+Output: [0,1]
+Explanation: Because nums[0] + nums[1] == 9, we return [0, 1].
 
+Example 2:
+Input: nums = [3,2,4], target = 6
+Output: [1,2]
+
+Example 3:
+Input: nums = [3,3], target = 6
+Output: [0,1]
+*/
 
 //16. SORT COLORS                                                       {T.C = O(N), S.C = O(1)}
 //3 POINTERS(DUTCH NATIONAL FLAG ALGO)
@@ -1107,9 +1120,6 @@ public:
         return element;                   //atast all cancel ecept 1 required anser
     }
 };
-
-
-
 /*
 Example 1:
 Input: nums = [3,2,3]
@@ -1498,7 +1508,7 @@ Explanation: The integer appearing twice is ‘2’, and the integer missing is 
 */
 
 
-//38. NUMBER OF INVERSIONS                                                {T.C = O(N), S.C = O(1)}
+//38. NUMBER OF INVERSIONS / COUNT INVERSIONS                         {T.C = O(N), S.C = O(1)}
 //MERGESORT
 int merge(vector<int> &arr, int low, int mid, int high) {
     vector<int> temp; // temporary array
