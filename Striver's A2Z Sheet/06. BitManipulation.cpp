@@ -748,6 +748,8 @@ Output:
 Explanation: 
 2*3*13*157 = 12246 = N.
 */
+
+
 //161. POW(X, N)                                            {T.C = O(LOGN), S.C = O(LOGN)}
 //SOLVE BY CONDITIONS (N == 0, N < 0, N % 2 == 0)
 class Solution {
