@@ -3788,6 +3788,8 @@ graph as-
 
 
 //344. STRONGLY CONNECTED COMPONENTS (KOSARAJU'S ALGO)            {T.C = O(V+E), S.C = O(V+E)}
+//SCC ONLY VALID FOR DIRECTED GRAPH
+//SCC HAVE ELEMENTS WHICH REACH ALL OTHER ELEMENTS.
 class Solution
 {
 	public:
@@ -3813,7 +3815,7 @@ class Solution
 	}
     int kosaraju(int V, vector<vector<int>>& adj)
     {
-        //step1 sort the adjacency list using topological sort
+        //step1 sort the adjacency list using topological sort (FINISHING TIME SORT)
         vector<int>vis(V, 0);
         stack<int>s;
         for(int i = 0 ; i < V ; i++){
@@ -3822,7 +3824,7 @@ class Solution
             }
         }
         
-        //step2 create a transpose graph
+        //step2 create a transpose graph (REVERSE EDGE GRAPH)
         vector<vector<int>>transpose(V);
         for(int i = 0 ; i < V ; i++){
             vis[i] = 0;                                    //reinitialize visited array
@@ -3832,7 +3834,7 @@ class Solution
         }
         
         //step3 dfs call on basis of above ordering (stack ordering)
-        int countSCC = 0;                          //SCC = Strongly Conneted Component
+        int countSCC = 0;                          //SCC = Strongly Connected Component
         while(!s.empty()){
             int top = s.top();
             s.pop();
