@@ -637,5 +637,686 @@ Expected Space Complexity: O(n * m * m)
 */
 
 //DP ON SUBSEQUENCES---------------------------------------------------------------------------
-//358. SUBSET SUM PROBLEM
-//
+//358. SUBSET SUM PROBLEM                                    {T.C = O(N*SUM), S.C = O(N*SUM)}
+//SIMPLE TAKE AND NON TAKE DP, INCLUDE SUM < 0 BASE CASE , ATLAST OR OF TAKE , NON TAKE.
+class Solution{   
+public:
+    int dp[101][10001];
+    bool solveMem(vector<int>&arr, int sum , int i){          //sum == target
+        int n = arr.size();
+        //base case
+        if(sum == 0) return true;                         //not pick case
+        if(i >= n || sum < 0) return false;               //sum < 0 for incl (sum - arr[i])
+        
+        if(dp[i][sum] != -1) return dp[i][sum];
+        
+        bool incl = solveMem(arr, sum-arr[i], i+1);
+        bool excl = solveMem(arr, sum, i+1);
+        
+        return dp[i][sum] = incl || excl;
+    }
+    bool isSubsetSum(vector<int>arr, int sum){
+        memset(dp, -1, sizeof(dp));
+        return solveMem(arr, sum, 0);                    //0 = initial index
+    }
+};
+/*
+Example 1:
+Input:
+N = 6
+arr[] = {3, 34, 4, 12, 5, 2}
+sum = 9
+Output: 1 
+Explanation: Here there exists a subset with
+sum = 9, 4+3+2 = 9.
+
+Example 2:
+Input:
+N = 6
+arr[] = {3, 34, 4, 12, 5, 2}
+sum = 30
+Output: 0 
+Explanation: There is no subset with sum 30.
+*/
+
+
+//359. PARTITION EQUAL SUBSET SUM                               {T.C = O(N*SUM), S.C = O(N*SUM)}
+//FIRST FIND TOTAL SUM THEN DIVIDE IT INTO 2 (TARGET{SINGLE}), ELSE ABOVE SAME CODE
+class Solution {
+public:
+    int dp[201][20001];                         //sum (max limit = 200x100 = 20000)
+    bool solveMem(vector<int>&nums, int sum , int i){            //sum == target
+        int n = nums.size();
+        //base case
+        if(sum == 0) return true;
+        if(i >= n || sum < 0) return false;
+
+        if(dp[i][sum] != -1) return dp[i][sum];
+
+        int incl = solveMem(nums, sum-nums[i], i+1);
+        int excl = solveMem(nums, sum, i+1);
+
+        return dp[i][sum] = incl || excl;
+    }
+    bool canPartition(vector<int>& nums) {
+        memset(dp, -1, sizeof(dp));
+        int sum = 0;
+        for(auto it : nums) sum += it;
+
+        if(sum % 2 != 0) return false;                   //partition not possible
+        int target = sum/2;                              //2 partition 
+
+        return solveMem(nums, target, 0);             //0 = initial index
+    }
+};
+/*
+Example 1:
+Input: nums = [1,5,11,5]
+Output: true
+Explanation: The array can be partitioned as [1, 5, 5] and [11].
+
+Example 2:
+Input: nums = [1,2,3,5]
+Output: false
+Explanation: The array cannot be partitioned into equal sum subsets.
+*/
+
+
+//360. PARTITION ARRAY INTO TWO ARRAYS TO MINIMIZE THE SUM DIFFERENCE
+
+
+
+//361. PERFECT SUM PROBLEM / COUNT SUBSET WITH SUM K  (FINDING WAYS)   {T.C = O(N*M), S.C = N*M}
+//SIMILAR TO ABOVE JUST (BOOL (OR) => INCL + EXCL(WAYS)), BASE CASE CHANGE(I == N && SUM == 0){TRAVERSAL ALL}
+class Solution{
+	public:
+	int mod = 1e9+7;
+	vector<vector<int>>dp;
+ 	//int dp[1000001][1000001];                      //size exceeds
+	int solveMem(int arr[], int n ,int sum, int i){
+	   // int n = sizeof(arr)/sizeof(arr[0]);
+	    //base case
+	    if(i == n && sum == 0) return 1;                      //traverse all still 0 then 1
+	    if(i >= n || sum < 0) return 0;                        //only positive sum is allowed
+	    
+	    if(dp[i][sum] != -1) return dp[i][sum];
+	    
+	    int incl = solveMem(arr, n, sum-arr[i], i+1);
+	    int excl = solveMem(arr, n, sum, i+1);
+	    
+	    return dp[i][sum] = (incl % mod + excl % mod) % mod;
+	}
+	int perfectSum(int arr[], int n, int sum){
+        // memset(dp, -1, sizeof(dp));
+        dp = vector<vector<int>>(n, vector<int>(sum+1, -1));
+        return solveMem(arr, n, sum, 0);                    //0 = initial index
+	}
+};
+/*
+Input: 
+n = 6, arr = [5, 2, 3, 10, 6, 8], sum = 10
+Output: 
+3
+Explanation: 
+{5, 2, 3}, {2, 8}, {10} are possible subsets.
+
+Input: 
+n = 5, arr = [2, 5, 1, 4, 3], sum = 10
+Output: 
+3
+Explanation: 
+{2, 1, 4, 3}, {5, 1, 4}, {2, 5, 3} are possible subsets.
+*/
+
+
+//362. PARTITION WITH GIVEN DIFFERENCE                        {T.C = O(N*SUM), S.C = O(N*M)}
+//SIMILAR TO ABOVE, JUST TARGET = SUM+D/2(INSTEAD OF SUM/2)
+class Solution {
+  public:
+    int mod = 1e9+7;
+    // int dp[500][25001];                         //max limit 10000
+    int solveMem(vector<int>&arr, int sum, int i, vector<vector<int>>&dp){
+	    int n = arr.size();
+	    //base case
+	    if(i == n && sum == 0) return 1;                      //traverse all still 0 then 1
+	    if(i >= n || sum < 0) return 0;                        //only positive sum is allowed
+	    
+	    if(dp[i][sum] != -1) return dp[i][sum];
+	    
+	    int incl = solveMem(arr, sum-arr[i], i+1, dp);
+	    int excl = solveMem(arr, sum, i+1, dp);
+	    
+	    return dp[i][sum] = (incl % mod + excl % mod) % mod;
+	}
+    int countPartitions(int n, int d, vector<int>& arr){
+        int sum = 0;
+        for(auto it : arr) sum += it;
+        
+        if((sum + d) % 2 != 0) return 0;              //odd cant be divide in partition
+        
+        int targetSum = (sum + d)/2;
+	    vector<vector<int>>dp(n+1, vector<int>(targetSum+1, -1));
+        return solveMem(arr, targetSum, 0, dp);
+    }
+};
+/*
+Example 1:
+Input:
+n = 4
+d = 3
+arr[] =  { 5, 2, 6, 4}
+Output: 1
+Explanation:
+There is only one possible partition of this array. Partition : {6, 4}, {5, 2}. The subset difference between subset sum is: (6 + 4) - (5 + 2) = 3.
+
+Example 2:
+Input:
+n = 4
+d = 0 
+arr[] = {1, 1, 1, 1} 
+Output: 6 
+Explanation:
+we can choose two 1's from indices {0,1}, {0,2}, {0,3}, {1,2}, {1,3}, {2,3} and put them in S1 and remaning two 1's in S2.
+Thus there are total 6 ways for partition the array arr. 
+*/
+
+
+//363a. ASSIGN COOKIES                                           
+//SORTING & TWO POINTERS                                         {T.C = O(N*LOGN), S.C = O(1)}
+//GREEDY APPROACH (SORT BOTH VECTOR), USE TWO POINTER(BOTH START), REQ <= HAVE COUNT++
+class Solution {
+public:
+    int findContentChildren(vector<int>& g, vector<int>& s) {
+        int n = g.size(), m = s.size();
+        sort(g.begin(), g.end());
+        sort(s.begin(), s.end());
+
+        int i = 0, j = 0, count = 0;
+        while(i < n && j < m){
+            if(g[i] <= s[j]){                    //req <= have
+                count++;
+                i++;
+            }
+            j++;
+        }
+        return count;
+    }
+};
+/*
+Example 1:
+Input: g = [1,2,3], s = [1,1]
+Output: 1
+Explanation: You have 3 children and 2 cookies. The greed factors of 3 children are 1, 2, 3. 
+And even though you have 2 cookies, since their size is both 1, you could only make the child whose greed factor is 1 content.
+You need to output 1.
+
+Example 2:
+Input: g = [1,2], s = [1,2,3]
+Output: 2
+Explanation: You have 2 children and 3 cookies. The greed factors of 2 children are 1, 2. 
+You have 3 cookies and their sizes are big enough to gratify all of the children, 
+You need to output 2.
+*/
+
+
+//363b. 01 KNAPSACK PROBLEM                                         {T.C = O(N*W), S.C = O(N*W)}
+//SIMPLE TAKE AND NOT TAKE PROBLM, WITH RECURSIVE CALL ADD VAL[I].
+class Solution{
+public:
+    int dp[1001][1001];                           //N, W
+    int solveMem(int wt[], int val[], int totalWt, int i, int n){
+        // int n = sizeof(wt)/sizeof(wt[0]);           //not works (in arr required refernce n)
+        //base case
+        if(i >= n) return 0;                           //out of range
+        
+        if(dp[i][totalWt] != -1) return dp[i][totalWt];
+        
+        int incl = 0;
+        if(totalWt >= wt[i]){
+            incl = val[i] + solveMem(wt, val, totalWt-wt[i], i+1, n);  //not take more then once
+        }
+        int excl = 0 + solveMem(wt, val, totalWt, i+1, n);
+        
+        return dp[i][totalWt] = max(incl, excl);
+    }
+    int knapSack(int W, int wt[], int val[], int n) { 
+       memset(dp, -1, sizeof(dp));
+       return solveMem(wt, val, W, 0, n);              //0 = initial index
+    }
+};
+/*
+Example 1:
+Input:
+N = 3
+W = 4
+values[] = {1,2,3}
+weight[] = {4,5,1}
+Output: 3
+Explanation: Choose the last item that weighs 1 unit and holds a value of 3. 
+
+Example 2:
+Input:
+N = 3
+W = 3
+values[] = {1,2,3}
+weight[] = {4,5,6}
+Output: 0
+Explanation: Every item has a weight exceeding the knapsack's capacity (3).
+*/
+
+
+//364. COIN CHANGE (FINDING MIN COINS REQ)                   {T.C = O(N*AMOUNT), S.C = O(N*AMOUNT)}
+//SIMILAR TO ABOVE, HANDLE BASE CASE (IF SUM < 0) RETURN MAX, THEN HANDLE INCL CASE ONLY VALID CASE INCL.
+class Solution {
+public:
+    int dp[13][10001];
+    int solveMem(vector<int>&coins, int sum, int i){
+        int n = coins.size();
+        //base case
+        if(sum == 0) return 0;                     //NO TAKE ANY COIN(0)
+        if(i >= n || sum < 0) return INT_MAX;
+        
+        if(dp[i][sum] != -1) return dp[i][sum];
+
+        int incl = INT_MAX;
+        if(sum >= coins[i]){
+            int inclAns = solveMem(coins, sum-coins[i], i);     //use same coin(i)
+            if(inclAns != INT_MAX) incl = inclAns+1;            //increase count of coin
+        }
+        int excl = 0 + solveMem(coins, sum, i+1);
+
+        return dp[i][sum] = min(incl, excl);
+
+    }
+    int coinChange(vector<int>& coins, int amount) {
+        memset(dp, -1, sizeof(dp));
+        int ans = solveMem(coins, amount, 0);                  //0 = initial index
+        return ans == INT_MAX ? -1 : ans;                 
+    }
+};
+/*
+Example 1:
+Input: coins = [1,2,5], amount = 11
+Output: 3
+Explanation: 11 = 5 + 5 + 1
+
+Example 2:
+Input: coins = [2], amount = 3
+Output: -1
+
+Example 3:
+Input: coins = [1], amount = 0
+Output: 0
+*/
+
+
+//365. TARGET SUM                                                   {T.C = O(N*SUM), S.C = O(N*M)}
+//JUST WRITE COUNTPARTITION PROBLEM (BOTTOM UP {TOP DOWN NOT WORKING})
+class Solution {
+public:
+    int solveMem(int n, int target, vector<int>& arr, vector<vector<int>>& dp) {
+        // Base cases
+        if (n == 0) {
+            if (target == 0 && arr[0] == 0) return 2; // Two ways to partition: include or exclude the element
+            if (target == 0 || target == arr[0]) return 1; // One way to partition: include or exclude the element
+            return 0; // No way to partition
+        }
+
+        if (dp[n][target] != -1)
+            return dp[n][target];
+
+        int excl = solveMem(n - 1, target, arr, dp);
+        int incl = 0;
+        if (arr[n] <= target){
+            incl = solveMem(n - 1, target - arr[n], arr, dp);
+        }
+        // Store the sum of ways in the DP array and return it
+        return dp[n][target] = (excl + incl);
+    }
+    int findTargetSumWays(vector<int>& nums, int target) {
+        int n = nums.size();
+        int totSum = 0;
+        for(auto it : nums) totSum += it;
+
+        // Checking for edge cases
+        if (totSum - target < 0) return 0; // Not possible to achieve the target sum
+        if ((totSum - target) % 2 == 1) return 0; // The difference between the total sum and target sum must be even
+
+        int s2 = (totSum - target) / 2; // Calculate the required sum for each subset
+
+        vector<vector<int>> dp(n, vector<int>(s2 + 1, -1)); // Initialize DP table
+        return solveMem(n - 1, s2, nums, dp); // Call the helper function
+
+    }
+};
+/*
+Example 1:
+Input: nums = [1,1,1,1,1], target = 3
+Output: 5
+Explanation: There are 5 ways to assign symbols to make the sum of nums be target 3.
+-1 + 1 + 1 + 1 + 1 = 3
++1 - 1 + 1 + 1 + 1 = 3
++1 + 1 - 1 + 1 + 1 = 3
++1 + 1 + 1 - 1 + 1 = 3
++1 + 1 + 1 + 1 - 1 = 3
+
+Example 2:
+Input: nums = [1], target = 1
+Output: 1
+*/
+
+
+//366. COIN CHANGE II (FINING TOTAL WAYS)                    {T.C = (N*AMOUNT), S.C = O(N*AMOUNT)}
+//SIMILAR TO COIN CHANGE 1, JUST FINDING TOTAL WAYS {INCL + EXCL} (NOT MIN COINS { MIN(INCL, EXCL)})
+class Solution {
+public:
+    int solveMem(vector<int>&coins, int amount, int i, vector<vector<int>>&dp){
+        int n = coins.size();
+        //base case
+        if(amount == 0) return 1;
+        if(i >= n || amount < 0) return 0;                  //out of bound or target < 0 return 0
+
+        if(dp[i][amount] != -1) return dp[i][amount];
+
+        int incl = 0;
+        if(amount >= coins[i]){
+            incl = solveMem(coins, amount-coins[i], i, dp);  //infinit supply (i not change)
+        }
+        int excl = solveMem(coins, amount, i+1, dp);
+
+        return dp[i][amount] = incl + excl;                          //total ways
+    }
+    int change(int amount, vector<int>& coins) {
+        int n = coins.size();
+        vector<vector<int>>dp(n+1, vector<int>(amount+1, -1));
+        return solveMem(coins, amount, 0, dp);                //0 = initial index
+    }
+};
+/*
+Example 1:
+Input: amount = 5, coins = [1,2,5]
+Output: 4
+Explanation: there are four ways to make up the amount:
+5=5
+5=2+2+1
+5=2+1+1+1
+5=1+1+1+1+1
+
+Example 2:
+Input: amount = 3, coins = [2]
+Output: 0
+Explanation: the amount of 3 cannot be made up just with coins of 2.
+
+Example 3:
+Input: amount = 10, coins = [10]
+Output: 1
+*/
+
+
+//367. KNAPSACK WITH DUPLICAT ITEM / UNBOUNDED KNAPSACK           {T.C = O(N*W), S.C = O(N*W)}
+//SIMILAR TO 01 KNAPSACK, JUST AT INCL USE (I {INSTEAD OF I+1}){WE CAN CHOOSE SAME ELEMENT ANY NUMBER OF TIME}
+class Solution{
+public:
+    int dp[1001][1001];
+    int solveMem(int wt[], int val[], int totalWt, int i, int n){
+        //base case
+        if(i >= n) return 0;
+        
+        if(dp[i][totalWt] != -1) return dp[i][totalWt];
+        
+        int incl = 0;
+        if(totalWt >= wt[i]){
+            incl = val[i] + solveMem(wt, val, totalWt-wt[i], i, n);        // we can choose wt many time
+        }
+        int excl = 0 + solveMem(wt, val, totalWt, i+1, n);
+        
+        return dp[i][totalWt] = max(incl, excl);
+    }
+    int knapSack(int N, int W, int val[], int wt[]){
+        memset(dp, -1, sizeof(dp));
+        return solveMem(wt, val, W, 0, N);              //0 = initial index
+    }
+};
+/*
+Example 1:
+Input: 
+N = 2
+W = 3
+val = {1, 1}
+wt = {2, 1}
+Output: 
+3
+Explanation: 
+1.Pick the 2nd element thrice.
+2.Total profit = 1 + 1 + 1 = 3. Also the total weight = 1 + 1 + 1  = 3 which is <= 3.
+
+Example 2:
+Input: 
+N = 4
+W = 8
+val[] = {6, 1, 7, 7}
+wt[] = {1, 3, 4, 5}
+Output: 
+48
+Explanation: 
+The optimal choice is to pick the 1st element 8 times.
+*/
+
+
+//368. ROD CUTTING PROBLEM / VARIATION OF UNBOUNDED KNAPSACK        {T.C = O(N^2), S.C = O(N^2)}
+//MEMOIZATION TOP DOWN (I TO N)
+//SIMILAR TO ABOVE , REVERSE VAL AND WT LIKE ,IN INCL {LEN(VAL) INSTEAD OF PRICE(WT)} BECAUSE TARGET IS TO FIND MAX PRICE(WT)
+class Solution{
+  public:
+    int dp[1001][1001];
+    int solveMem(int price[], vector<int>len, int i, int totalLen){
+        int n = len.size();
+        //base case
+        if(i >= n || totalLen == 0) return 0;                           //exceeds total len(out of bound)
+        
+        if(dp[i][totalLen] != -1) return dp[i][totalLen];
+        
+        int incl = 0;
+        if(totalLen >= len[i]){                                        //in knapsack (w >= wt[i]){reverse in this}
+            incl = price[i] + solveMem(price, len, i, totalLen-len[i]);     //i (unbounded knapsack){infinite supply}
+        }
+        int excl = 0 + solveMem(price, len, i+1, totalLen);
+        
+        return dp[i][totalLen] = max(incl, excl);
+    }
+    int cutRod(int price[], int n) {        
+        vector<int>len(n);
+        for(int i = 0 ; i < n ; i++){
+            len[i] = i+1;
+        }
+        memset(dp, -1, sizeof(dp));
+        return solveMem(price, len, 0, n);      //price[] == wt[], len[] = val[], n = W
+    }
+};
+
+
+//USING TOP DOWN (N TO I)
+class Solution{
+  public:
+    int dp[1002][1002];
+    int solveMem(int price[], vector<int>&len, int n, int totalLen){
+        //base case
+        if(n == 0 || totalLen == 0) return 0;                           //exceeds total len(out of bound)
+        
+        if(dp[n][totalLen] != -1) return dp[n][totalLen];
+        
+        int incl = 0;
+        if(totalLen >= len[n-1]){                                        //in knapsack (w >= wt[i]){reverse in this}
+            incl = price[n-1] + solveMem(price, len, n, totalLen-len[n-1]);     //i (unbounded knapsack){infinite supply}
+        }
+        int excl = 0 + solveMem(price, len, n-1, totalLen);
+        
+        return dp[n][totalLen] = max(incl, excl);
+    }
+    int cutRod(int price[], int n) {        
+        vector<int>len(n);
+        for(int i = 0 ; i < n ; i++){
+            len[i] = i+1;
+        }
+        memset(dp, -1, sizeof(dp));
+        return solveMem(price, len, n, n);      //price[] == wt[], len[] = val[], n = W
+    }
+};
+/*
+Example 1:
+Input:
+N = 8
+Price[] = {1, 5, 8, 9, 10, 17, 17, 20}
+Output:
+22
+Explanation:
+The maximum obtainable value is 22 by 
+cutting in two pieces of lengths 2 and 
+6, i.e., 5+17=22.
+
+Example 2:
+Input:
+N=8
+Price[] = {3, 5, 8, 9, 10, 17, 17, 20}
+Output: 
+24
+Explanation: 
+The maximum obtainable value is 
+24 by cutting the rod into 8 pieces 
+of length 1, i.e, 8*price[1]= 8*3 = 24. 
+*/
+
+
+//DP ON STRINGS-------------------------------------------------------------------------------
+//369. LONGEST COMMON SUBSEQUENCES                           {T.C = O(N*M), S.C = O(N*M)}
+//TOP DOWN (MEMOIZATION)
+//TAKE POINTER TWO BOTH A, B (INITIAL), TAKE COUNT(VAR), IF A & B CHAR IS SAME COUNT+1 , ELSE MAX OF 
+//BOTH TAKE AND NOT TAKE POINTERS,(I & J).
+class Solution {
+public:
+    int dp[1001][1001];
+    int solveMem(string &a, string &b, int i, int j){
+        int n = a.length(), m = b.length();
+        //base case
+        if(i >= n || j >= m) return 0;
+
+        if(dp[i][j] != -1) return dp[i][j];
+
+        int count = 0;
+        if(a[i] == b[j]){
+            count = 1 + solveMem(a, b, i+1, j+1);
+        }else{  //a[i] != b[i]
+            count = 0 + max(solveMem(a, b, i+1, j), solveMem(a, b, i, j+1));  //incl, excl
+        }
+        return dp[i][j] = count;
+    }
+    int longestCommonSubsequence(string text1, string text2) {
+        memset(dp, -1, sizeof(dp));
+        return solveMem(text1, text2, 0, 0);             //0 , 0 = initial index of both text
+    }
+};
+
+//BOTTOM UP (TABULATION)                                     {T.C = O(N*M), S.C = O(N*M)}
+class Solution {
+public:
+    int dp[1001][1001];
+    int solveTab(string &a, string &b, int n, int m){
+        //base case 1st row and 1st col of dp table is 0
+        for(int i = 0 ; i < n+1 ; i++) dp[i][0] = 0;
+        for(int j = 0 ; j < m+1 ; j++) dp[0][j] = 0;
+
+        //fill rest of table
+        for(int i = 1; i < n+1 ; i++){
+            for(int j = 1 ; j < m+1 ; j++){
+                if(a[i-1] == b[j-1]){                        //index from 0 not 1
+                    dp[i][j] = 1 + dp[i-1][j-1];
+                } 
+                else{
+                    dp[i][j] = 0 + max(dp[i-1][j], dp[i][j-1]);
+                } 
+            }
+        }
+
+        return dp[n][m];                                   //last box of table(LCS length)
+    }
+    int longestCommonSubsequence(string text1, string text2) {
+        memset(dp, -1, sizeof(dp));
+        int n = text1.size(), m = text2.size();
+        return solveTab(text1, text2, n, m);             //n , m = size of both strings(dp table nXm)
+    }
+};
+/*
+Example 1:
+Input: text1 = "abcde", text2 = "ace" 
+Output: 3  
+Explanation: The longest common subsequence is "ace" and its length is 3.
+
+Example 2:
+Input: text1 = "abc", text2 = "abc"
+Output: 3
+Explanation: The longest common subsequence is "abc" and its length is 3.
+
+Example 3:
+Input: text1 = "abc", text2 = "def"
+Output: 0
+Explanation: There is no such common subsequence, so the result is 0.
+*/
+
+
+//370. PRINT LONGEST COMMON SUBSEQUENCE                      {T.C = O(N*M), S.C = O(N*M)}
+//SAME AS FINDING LENGTH OF LCS, JUST ADD CONDITION TO PRINT LCS
+class Solution {
+public:
+    int dp[1001][1001];
+    int solveTab(string &a, string &b, int n, int m){
+        //base case 1st row and 1st col of dp table is 0
+        for(int i = 0 ; i < n+1 ; i++) dp[i][0] = 0;
+        for(int j = 0 ; j < m+1 ; j++) dp[0][j] = 0;
+
+        //fill rest of table
+        for(int i = 1; i < n+1 ; i++){
+            for(int j = 1 ; j < m+1 ; j++){
+                if(a[i-1] == b[j-1]){                        //index from 0 not 1
+                    dp[i][j] = 1 + dp[i-1][j-1];
+                } 
+                else{
+                    dp[i][j] = 0 + max(dp[i-1][j], dp[i][j-1]);
+                } 
+            }
+        }
+        //print lc string
+        string lcs = "";
+        int i = n , j = m;
+        while(i > 0 && j > 0){
+            if(a[i-1] == b[j-1]){
+                lcs.push_back(a[i-1]);
+                i--, j--;
+            }else{
+                if(dp[i-1][j] > dp[i][j-1]) i--;
+                else j--;
+            }
+        }
+        reverse(lcs.begin(), lcs.end());                  //curr string is in reverse order
+        cout<<lcs<<" ";
+
+        return dp[n][m];                                   //last box of table(LCS length)
+    }
+    int longestCommonSubsequence(string text1, string text2) {
+        memset(dp, -1, sizeof(dp));
+        int n = text1.size(), m = text2.size();
+        return solveTab(text1, text2, n, m);             //n , m = size of both strings(dp table nXm)
+    }
+};
+/*
+Input
+text1 =
+"abcde"
+text2 =
+"ace"
+Stdout
+ace 
+Output
+3
+Expected
+3
+*/
