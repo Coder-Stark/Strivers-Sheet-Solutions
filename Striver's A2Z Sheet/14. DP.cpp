@@ -1188,6 +1188,7 @@ of length 1, i.e, 8*price[1]= 8*3 = 24.
 
 
 //DP ON STRINGS-------------------------------------------------------------------------------
+//LCS PATTERN========================================================================================
 //369. LONGEST COMMON SUBSEQUENCES                           {T.C = O(N*M), S.C = O(N*M)}
 //TOP DOWN (MEMOIZATION)
 //TAKE POINTER TWO BOTH A, B (INITIAL), TAKE COUNT(VAR), IF A & B CHAR IS SAME COUNT+1 , ELSE MAX OF 
@@ -1240,7 +1241,6 @@ public:
         return dp[n][m];                                   //last box of table(LCS length)
     }
     int longestCommonSubsequence(string text1, string text2) {
-        memset(dp, -1, sizeof(dp));
         int n = text1.size(), m = text2.size();
         return solveTab(text1, text2, n, m);             //n , m = size of both strings(dp table nXm)
     }
@@ -1280,11 +1280,11 @@ public:
                     dp[i][j] = 1 + dp[i-1][j-1];
                 } 
                 else{
-                    dp[i][j] = 0 + max(dp[i-1][j], dp[i][j-1]);
+                    dp[i][j] = max(dp[i-1][j], dp[i][j-1]);
                 } 
             }
         }
-        //print lc string
+        //print LCS string
         string lcs = "";
         int i = n , j = m;
         while(i > 0 && j > 0){
@@ -1302,7 +1302,6 @@ public:
         return dp[n][m];                                   //last box of table(LCS length)
     }
     int longestCommonSubsequence(string text1, string text2) {
-        memset(dp, -1, sizeof(dp));
         int n = text1.size(), m = text2.size();
         return solveTab(text1, text2, n, m);             //n , m = size of both strings(dp table nXm)
     }
@@ -1320,3 +1319,424 @@ Output
 Expected
 3
 */
+
+
+//371. LONGEST COMMON SUBSTRING                                {T.C = O(N*M), S.C = O(N*M)}
+//USING BOTTOM UP (TABULATION)
+//SIMILAR TO SUBSEQUENCE , IN ELSE CASE (NOT MATCH CHAR) RESET THE TABLE TO 0 AND AGAIN SEARCH FOR MAXLEN
+class Solution {
+public:
+    int dp[1001][1001];
+    int solveTab(string &a, string &b, int n, int m){
+        //base fill row and col with 0
+        for(int i = 0 ; i < n+1 ; i++) dp[i][0] = 0;
+        for(int j = 0 ; j < m+1 ; j++) dp[0][j] = 0;
+        
+        int maxLen = 0;
+        //fill remaining table
+        for(int i = 1; i < n+1 ; i++){
+            for(int j = 1 ; j < m+1 ; j++){
+                if(a[i-1] == b[j-1]){
+                    dp[i][j] = 1 + dp[i-1][j-1];
+                    maxLen = max(maxLen, dp[i][j]);
+                }else{
+                    dp[i][j] = 0;                          //reset (in subsequence {max(dp[i-1][j], dp[i][j-1])})
+                }
+            }
+        }
+        return maxLen;                           
+    }
+    int longestCommonSubstr(string s1, string s2, int n, int m) {
+        return solveTab(s1, s2, n, m);
+    }
+};
+/*
+Example 1:
+Input: S1 = "ABCDGH", S2 = "ACDGHR", n = 6, m = 6
+Output: 4
+Explanation: The longest common substring
+is "CDGH" which has length 4.
+
+Example 2:
+Input: S1 = "ABC", S2 "ACB", n = 3, m = 3
+Output: 1
+Explanation: The longest common substrings
+are "A", "B", "C" all having length 1.
+*/
+
+
+//372. LONGEST PALINDROMIC SUBSEQUENCE                          {T.C = O(N^2), S.C = O(N^2)}
+//BOTTOM UP (TABULATION)
+//JUST MAKE REVERSE STRING AND PASS AS IT AS TO LCS (PALINDROME => FIRST AND LAST CHAR SAME)
+class Solution {
+public:
+    int dp[1001][1001];
+    int solveTab(string &a, string &b, int n){
+        //fill first row and first col 0
+        for(int i = 0 ; i < n+1 ; i++) dp[i][0] = 0;
+        for(int j = 0 ; j < n+1 ; j++) dp[0][j] = 0;
+
+        //fill remaining table
+        for(int i = 1 ; i < n+1 ; i++){
+            for(int j = 1 ; j < n+1 ; j++){
+                if(a[i-1] == b[j-1]){
+                    dp[i][j] = 1 + dp[i-1][j-1];
+                }else{
+                    dp[i][j] = max(dp[i-1][j], dp[i][j-1]);
+                }
+            }
+        }
+        return dp[n][n];
+    }
+    int longestPalindromeSubseq(string s) {
+        int n = s.length();                   //n = m
+        string original = s;
+        reverse(s.begin(), s.end());
+        return solveTab(original, s, n);                 //s is now reversed string
+    }
+};
+/*
+Example 1:
+Input: s = "bbbab"
+Output: 4
+Explanation: One possible longest palindromic subsequence is "bbbb".
+
+Example 2:
+Input: s = "cbbd"
+Output: 2
+Explanation: One possible longest palindromic subsequence is "bb".
+*/
+
+
+//373. MINIMUM INSERTION STEPS TO MAKE A STRING PALINDROME          {T.C = O(N^2), S.C = O(N^2)}
+//BOTTOM UP (TABULATION)
+//FIND LPS(ABOVE CODE), THEN JUST SUBTRACT TOTAL LENGTH-LPS
+class Solution {
+public:
+    int dp[501][501];
+    int solveTab(string &a, string &b, int n){
+        //base case fill first row & col with 0
+        for(int i = 0 ; i < n+1 ; i++) dp[i][0] = 0;
+        for(int j = 0 ; j < n+1 ; j++) dp[0][j] = 0;
+
+        //fill remaining table
+        for(int i = 1 ; i < n+1 ; i++){
+            for(int j = 1 ; j < n+1 ; j++){
+                if(a[i-1] == b[j-1]){
+                    dp[i][j] = 1 + dp[i-1][j-1];
+                }else{
+                    dp[i][j] = max(dp[i-1][j], dp[i][j-1]);
+                }
+            }
+        }
+        return dp[n][n];
+    }
+    int longestPalindromeSubseq(string &s){                 //lps
+        int n = s.length();
+        string original = s;
+        reverse(s.begin(), s.end());
+        return solveTab(original, s, n);                  //s is now reverse string
+    }
+    int minInsertions(string s) {
+        int n = s.length();
+        int lps = longestPalindromeSubseq(s);
+        return n - lps;                                 //min insertion req n-lps(all except already palindromes char)
+    }
+};
+/*
+Example 1:
+Input: s = "zzazz"
+Output: 0
+Explanation: The string "zzazz" is already palindrome we do not need any insertions.
+
+Example 2:
+Input: s = "mbadm"
+Output: 2
+Explanation: String can be "mbdadbm" or "mdbabdm".
+
+Example 3:
+Input: s = "leetcode"
+Output: 5
+Explanation: Inserting 5 characters the string becomes "leetcodocteel".
+*/
+
+
+//374. DELETE OPERATION FOR TWO STRING                         {T.C = O(N*M), S.C = O(N*M)}
+//BOTTOM UP(TABULATION)
+//FIND LCS , RETURN N-LCS(DELETION REQ), M-LCS(INSERTION REQ)
+class Solution {
+public:
+    int dp[501][501];
+    int solveTab(string &a, string &b, int n, int m){
+        //base case fill 1st row and col 0   (it is optional part)
+        for(int i = 0 ; i < n+1 ; i++) dp[i][0] = 0;
+        for(int j = 0 ; j < m+1 ; j++) dp[0][j] = 0;
+
+        //fill rest of table
+        for(int i = 1; i < n+1 ; i++){
+            for(int j = 1 ; j < m+1 ; j++){
+                if(a[i-1] == b[j-1]){
+                    dp[i][j] = 1 + dp[i-1][j-1];
+                }else{
+                    dp[i][j] = max(dp[i-1][j], dp[i][j-1]);
+                }
+            }
+        }
+        return dp[n][m];
+    }
+    int minDistance(string word1, string word2) {
+        int n = word1.length(), m = word2.length();
+        int lcs = solveTab(word1, word2, n, m);
+        return (n-lcs) + (m-lcs);                          //deletion(word1), insertion(word2)
+    }
+};
+/*
+Example 1:
+Input: word1 = "sea", word2 = "eat"
+Output: 2
+Explanation: You need one step to make "sea" to "ea" and another step to make "eat" to "ea".
+
+Example 2:
+Input: word1 = "leetcode", word2 = "etco"
+Output: 4
+*/
+
+
+//375. SHORTEST COMMON SUPERSEQUENCE (SCS)                       {T.C = O(N*M), S.C = O(N*M)}
+//BOTTOM UP(TABULATION)
+//SCS LENGTH = N+M-LCS
+//FOR PRINT PRINT ACCORDINGLY BELOW
+class Solution {
+public:
+    int dp[1001][1001];
+    string solveTab(string &a, string &b, int n, int m){
+        //base case fill 1st row and col 0
+        for(int i = 0 ; i < n+1; i++) dp[i][0] = 0;
+        for(int j = 0 ; j < m+1; j++) dp[0][j] = 0;
+
+        //fill remaining table
+        for(int i = 1; i < n+1; i++){
+            for(int j = 1 ; j < m+1; j++){
+                if(a[i-1] == b[j-1]){
+                    dp[i][j] = 1 + dp[i-1][j-1];
+                }else{
+                    dp[i][j] = max(dp[i-1][j], dp[i][j-1]);
+                }
+            }
+        }
+
+        //print the SCS
+        int i = n, j = m;
+        string ans = "";
+        while(i > 0 && j > 0){
+            if(a[i-1] == b[j-1]){
+                ans.push_back(a[i-1]);
+                i--, j--;
+            }else{
+                if(dp[i-1][j] > dp[i][j-1]){
+                    ans.push_back(a[i-1]);
+                    i--;
+                }else{
+                    ans.push_back(b[j-1]);
+                    j--;
+                }
+            }
+        }
+        while(i > 0){                                 //print remaining char or row or col
+            ans.push_back(a[i-1]);
+            i--;
+        }
+        while(j > 0){
+            ans.push_back(b[j-1]);
+            j--;
+        }
+        reverse(ans.begin(), ans.end());
+        return ans;
+    }
+    string shortestCommonSupersequence(string str1, string str2) {
+        int n = str1.size(), m = str2.size();
+        return solveTab(str1, str2, n, m);
+    }
+};
+/*
+Example 1:
+Input: str1 = "abac", str2 = "cab"
+Output: "cabac"
+Explanation: 
+str1 = "abac" is a subsequence of "cabac" because we can delete the first "c".
+str2 = "cab" is a subsequence of "cabac" because we can delete the last "ac".
+The answer provided is the shortest such string that satisfies these properties.
+
+Example 2:
+Input: str1 = "aaaaaaaa", str2 = "aaaaaaaa"
+Output: "aaaaaaaa"
+*/
+
+
+//STRING MATCHING PATTERN===========================================================================
+//376. DISTINCT SUBSEQUENCES                                       {T.C = O(N*M), S.C = O(N*M)}
+//TOP DOWN (MEMOIZATION)
+//HAND BASE CASE (T EXHAUST(REQ STRING MATCHED RETURN 1), S EXHAUST(REQ STRING NOT ENOUGH LEN TO MATCH))
+//IF CHAR SAME THEN ICREASE BOTH POINTER + S POINTER(MULTIPLE ANS), ELSE INCREASE ONLY S POINTER
+class Solution {
+public:
+    int dp[1001][1001];
+    int solveMem(string &a, string &b, int i, int j){
+        int n = a.length(), m = b.length();
+        //base case
+        if(j >= m) return 1;                            //t exhaust (all char of t matches)
+        if(i >= n) return 0;                            //s exhaust but not t(not enough char to match)
+
+        if(dp[i][j] != -1) return dp[i][j];
+
+        if(a[i] == b[j]){
+            dp[i][j] = solveMem(a, b, i+1, j+1) + solveMem(a, b, i+1, j);
+        }else{
+            dp[i][j] = solveMem(a, b, i+1, j);
+        }
+
+        return dp[i][j];
+    }
+    int numDistinct(string s, string t) {
+        memset(dp, -1, sizeof(dp));
+        return solveMem(s, t, 0, 0);                    //0, 0 = initial index of both string
+    }
+};
+/*
+Example 1:
+Input: s = "rabbbit", t = "rabbit"
+Output: 3
+Explanation:
+As shown below, there are 3 ways you can generate "rabbit" from s.
+rabbbit
+rabbbit
+rabbbit
+
+Example 2:
+Input: s = "babgbag", t = "bag"
+Output: 5
+Explanation:
+As shown below, there are 5 ways you can generate "bag" from s.
+babgbag
+babgbag
+babgbag
+babgbag
+babgbag
+*/
+
+
+//377. EDIT DISTANCE                                           {T.C = O(N*M), S.C = O(N*M)}
+//TOP DOWN (MEMOIZATION)
+//BASE CASE(A FULLY TRAVERSED REMAINING LENGTH OF ANOTHER IS ANS SIMILARLY FOR OTHER), IF CHAR MATCH
+//MOVE BOTH POINTERS, ELSE (INSERT{J+1}, DELETE{I+1}, REPLACE(I+1, J+1)), TAKE MIN OF ALL.
+class Solution {
+public:
+    int dp[501][501];
+    int solveMem(string &a, string &b, int i, int j) {
+        int n = a.length(), m = b.length();
+
+        // Base case
+        if (i == n) return m-j;                     //string1 is fully traversed now rest(m-j length is ans)
+        if (j == m) return n-i;                    //string2 is fully traversed now rest(m-i length is ans)
+
+        if (dp[i][j] != -1) return dp[i][j];
+
+        int miniOp = INT_MAX;
+        // Recursive call
+        if (a[i] == b[j]) {
+            miniOp = solveMem(a, b, i + 1, j + 1);
+        } else { // Min of insert, delete, replace
+            int insertOp = solveMem(a, b, i, j + 1);   //It increments the index j of b while keeping the index i of a the same
+            int deleteOp = solveMem(a, b, i + 1, j);   //It increments the index i of a while keeping the index j of b the same
+            int replacOp = solveMem(a, b, i + 1, j + 1);//It increments the index i of a as well as index j of b
+
+            miniOp = 1 + min({insertOp, deleteOp, replacOp});         //1 (current operation + other)         
+        }
+
+        //step2 store ans in dp
+        return dp[i][j] = miniOp;
+    }
+
+    int minDistance(string word1, string word2) {
+        memset(dp, -1, sizeof(dp));
+        return solveMem(word1, word2, 0, 0);                  //0, 0 = starting index of both strings
+    }
+};
+/*
+Example 1:
+Input: word1 = "horse", word2 = "ros"
+Output: 3
+Explanation: 
+horse -> rorse (replace 'h' with 'r')
+rorse -> rose (remove 'r')
+rose -> ros (remove 'e')
+
+Example 2:
+Input: word1 = "intention", word2 = "execution"
+Output: 5
+Explanation: 
+intention -> inention (remove 't')
+inention -> enention (replace 'i' with 'e')
+enention -> exention (replace 'n' with 'x')
+exention -> exection (replace 'n' with 'c')
+exection -> execution (insert 'u')
+*/
+
+
+//378. WILDCARD MATCHING                                              {T.C = O(N*M), S.C = O(N*M)}
+//TOP DOWN (MEMOIZATION)
+//FIRST SWITCH CALL FOR MEMOIZATION (P->S (CONVERT PATTERN TO STRING)), THEN CHECK BASE CASES, THEN IF CHAR MATCH
+//OR ? THEN INCREASE BOTH POINTER ELSE IF * (EMPTY OR DELETE FOR ANOTHER), ELSE FALSE.
+class Solution {
+public:
+    int dp[2001][2001];
+    
+    bool solveMem(string &a, string &b, int i, int j) {
+        int n = a.length(), m = b.length();
+        // base case
+        if(i >= n && j >= m) return true;                    // both s and pattern exhaust
+        if(i >= n && j < m) return false;                    // s exhaust pattern not (not possible there is something to compare)
+        if(i < n && j >= m) {                                // s not exhaust pattern exhaust if all * ? t : f
+            for(int k = i; k < n; k++) {                     // all should be * else false
+                if(a[k] != '*') return false;
+            }
+            return true;
+        }
+
+        if(dp[i][j] != -1) return dp[i][j];
+
+        if(a[i] == b[j] || a[i] == '?') {
+            dp[i][j] = solveMem(a, b, i+1, j+1);
+        } else if(a[i] == '*') {
+            dp[i][j] = solveMem(a, b, i+1, j) || solveMem(a, b, i, j+1);  // empty (* = '') or delete that char (b[j] = b[j+1]) to match
+        } else {
+            dp[i][j] = false;
+        }
+
+        return dp[i][j];
+    }
+
+    bool isMatch(string s, string p) {
+        memset(dp, -1, sizeof(dp));
+        return solveMem(p, s, 0, 0);            //switched the order of s and p (convert p->s)
+    }
+};
+/*
+Example 1:
+Input: s = "aa", p = "a"
+Output: false
+Explanation: "a" does not match the entire string "aa".
+
+Example 2:
+Input: s = "aa", p = "*"
+Output: true
+Explanation: '*' matches any sequence.
+
+Example 3:
+Input: s = "cb", p = "?a"
+Output: false
+Explanation: '?' matches 'c', but the second letter is 'a', which does not match 'b'.
+*/
+
+
+//DP ON STOCKS--------------------------------------------------------------------------------------------
