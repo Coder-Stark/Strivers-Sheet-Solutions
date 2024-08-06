@@ -1740,3 +1740,1173 @@ Explanation: '?' matches 'c', but the second letter is 'a', which does not match
 
 
 //DP ON STOCKS--------------------------------------------------------------------------------------------
+//379. BEST TIME TO BUY AND SELL STOCK I (ONE DAY BUY & ANOTHER DAY SELL)   {T.C = O(N), S.C = O(1)}
+//SIMPLE ITERATION, KEEP MINI(STARTING ELE), MAXPROFIT = 0, TRAVERSE ELE, PROFIT = I-MINI, UPDATE MAXPROFIT
+//UPDATE MINI FINALLY RETURN MAXPROFIT
+class Solution {
+public:
+    int maxProfit(vector<int>& prices) {
+        int mini = prices[0];
+        int maxPft = 0;
+
+        for(int i = 1 ; i < prices.size() ; i++){              //0 = mini
+            int profit = prices[i] - mini;
+            maxPft = max(maxPft, profit);
+            mini = min(mini, prices[i]);                //for updating mini element
+        }
+        return maxPft;
+    }
+};
+/*
+Example 1:
+Input: prices = [7,1,5,3,6,4]
+Output: 5
+Explanation: Buy on day 2 (price = 1) and sell on day 5 (price = 6), profit = 6-1 = 5.
+Note that buying on day 2 and selling on day 1 is not allowed because you must buy before you sell.
+
+Example 2:
+Input: prices = [7,6,4,3,1]
+Output: 0
+Explanation: In this case, no transactions are done and the max profit = 0.
+*/
+
+
+//380. BEST TIME TO BUY AND SELL STOCK II (ONE DAY BUY & SELL MULTIPLE TIMES) {T.C = O(N {N*CONSTANT}), S.C = O(N)}
+//TOP DOWN (MEMOIZATION)
+//BUY (BUYKARO, SKIPKARO), SELL (SELLKARO, SKIPKARO)
+class Solution {
+public:
+    vector<vector<int>>dp;
+    int solveMem(vector<int>&prices, int i, int buy){
+        int n = prices.size();
+        //base case (out of bound)
+        if(i == n) return 0;
+
+        if(dp[i][buy] != -1) return dp[i][buy];
+
+        int maxProfit = 0;
+        if(buy){
+            int buyKaro  = -prices[i] + solveMem(prices, i+1, 0);     //0 = next we have to sell
+            int skipKaro = 0          + solveMem(prices, i+1, 1);     //1 = next we have to buy
+            maxProfit = max(buyKaro, skipKaro);
+        }else{
+            int sellKaro = prices[i]  + solveMem(prices, i+1, 1);      
+            int skipKaro = 0          + solveMem(prices, i+1, 0); 
+            maxProfit = max(sellKaro , skipKaro);
+        }
+
+        return dp[i][buy] = maxProfit;
+    }
+    int maxProfit(vector<int>& prices) {
+        int n = prices.size();
+        dp.resize(n+1, vector<int>(2, -1));
+        return solveMem(prices, 0, 1);                //0 = initial index, 1 = buy allowed(0 not allowed)
+    }
+};
+/*
+Example 1:
+Input: prices = [7,1,5,3,6,4]
+Output: 7
+Explanation: Buy on day 2 (price = 1) and sell on day 3 (price = 5), profit = 5-1 = 4.
+Then buy on day 4 (price = 3) and sell on day 5 (price = 6), profit = 6-3 = 3.
+Total profit is 4 + 3 = 7.
+
+Example 2:
+Input: prices = [1,2,3,4,5]
+Output: 4
+Explanation: Buy on day 1 (price = 1) and sell on day 5 (price = 5), profit = 5-1 = 4.
+Total profit is 4.
+
+Example 3:
+Input: prices = [7,6,4,3,1]
+Output: 0
+Explanation: There is no way to make a positive profit, so we never buy the stock to achieve the maximum profit of 0.
+*/
+
+
+//381. BEST TIME TO BUY AND SELL STOCK III (ONE DAY BUY & SELL LIMITED TIMES) {T.C = O(N {N*2(LIMIT)}), S.C = O(N)}
+//TOP DOWN (MEMOIZATION)
+//BUY (BUYKARO, SKIPKARO), SELL (SELLKARO(LIMIT--), SKIPKARO)
+class Solution {
+public:
+    vector<vector<vector<int>>>dp;
+    int solveMem(vector<int>&prices, int i, int buy, int limit){
+        int n = prices.size();
+        //base case
+        if(i >= n || limit == 0) return 0;
+
+        if(dp[i][buy][limit] != -1) return dp[i][buy][limit];
+
+        int maxProfit = 0;
+        if(buy){
+            int buyKaro  = -prices[i] + solveMem(prices, i+1, 0, limit);
+            int skipKaro = 0          + solveMem(prices, i+1, 1, limit);
+            maxProfit = max(buyKaro, skipKaro);
+        }else{
+            int sellKaro = +prices[i] + solveMem(prices, i+1, 1, limit-1);   //only in that case limit reduces
+            int skipKaro = 0          + solveMem(prices, i+1, 0, limit);
+            maxProfit = max(sellKaro, skipKaro);
+        }
+        return dp[i][buy][limit] = maxProfit;
+    }
+    int maxProfit(vector<int>& prices) {
+        int n = prices.size();
+        dp.resize(n+1, vector<vector<int>>(2, vector<int>(3, -1)));  //3 = 0, 1, 2
+        return solveMem(prices, 0, 1, 2);             //0 = initial index, 1 = buy allowed, 2 = limit of transactions(in this 2)
+    }
+};
+/*
+Example 1:
+Input: prices = [3,3,5,0,0,3,1,4]
+Output: 6
+Explanation: Buy on day 4 (price = 0) and sell on day 6 (price = 3), profit = 3-0 = 3.
+Then buy on day 7 (price = 1) and sell on day 8 (price = 4), profit = 4-1 = 3.
+
+Example 2:
+Input: prices = [1,2,3,4,5]
+Output: 4
+Explanation: Buy on day 1 (price = 1) and sell on day 5 (price = 5), profit = 5-1 = 4.
+Note that you cannot buy on day 1, buy on day 2 and sell them later, as you are engaging multiple transactions at the same time. You must sell before buying again.
+
+Example 3:
+Input: prices = [7,6,4,3,1]
+Output: 0
+Explanation: In this case, no transaction is done, i.e. max profit = 0.
+*/
+
+
+//382. BEST TIME TO BUY AND SELL STOCK IV (ONE DAY BUY & SELL LIMITED TIMES) {T.C = O(N*K(LIMIT)), S.C = O(N*K)}
+//TOP DOWN (MEMOIZATION)
+//BUY (BUYKARO, SKIPKARO), SELL (SELLKARO(LIMIT--), SKIPKARO)
+class Solution {
+public:
+    vector<vector<vector<int>>>dp;
+    int solveMem(vector<int>&prices, int i, int buy, int limit){       //limit == k
+        int n = prices.size();
+        //base case
+        if(i >= n || limit == 0) return 0;
+
+        if(dp[i][buy][limit] != -1) return dp[i][buy][limit];
+
+        int maxProfit = 0;
+        if(buy){
+            int buyKaro  = -prices[i] + solveMem(prices, i+1, 0, limit);
+            int skipKaro = 0          + solveMem(prices, i+1, 1, limit);
+            maxProfit = max(buyKaro, skipKaro);
+        }else{
+            int sellKaro = +prices[i] + solveMem(prices, i+1, 1, limit-1);   //only in that case limit reduces
+            int skipKaro = 0          + solveMem(prices, i+1, 0, limit);
+            maxProfit = max(sellKaro, skipKaro);
+        }
+        return dp[i][buy][limit] = maxProfit;
+    }
+    int maxProfit(int k, vector<int>& prices) {
+        int n = prices.size();
+        dp.resize(n+1, vector<vector<int>>(2, vector<int>(k+1, -1)));
+        return solveMem(prices, 0, 1, k);              //0 = initial index, 1 = buy allowed, k = limit
+    }
+};
+/*
+Example 1:
+Input: k = 2, prices = [2,4,1]
+Output: 2
+Explanation: Buy on day 1 (price = 2) and sell on day 2 (price = 4), profit = 4-2 = 2.
+
+Example 2:
+Input: k = 2, prices = [3,2,6,5,0,3]
+Output: 7
+Explanation: Buy on day 2 (price = 2) and sell on day 3 (price = 6), profit = 6-2 = 4. Then buy on day 5 (price = 0) and sell on day 6 (price = 3), profit = 3-0 = 3.
+*/
+
+
+//383. BEST TIME TO BUY AND SELL STOCK V (ONE DAY BUY & SELL MULTIPLE TIMES WITH COOLDOWN PERIOND(1 DAY)) 
+//SIMILAR TO BUY SELL II                                            {T.C = O(N {N*CONSTANT}), S.C = O(N)}
+//TOP DOWN (MEMOIZATION)
+//BUY (BUYKARO, SKIPKARO), SELL (SELLKARO(I+2(COOL DOWN 1 DAY)), SKIPKARO)
+class Solution {
+public:
+    vector<vector<int>>dp;
+    int solveMem(vector<int>&prices, int i, int buy){
+        int n = prices.size();
+        //base case
+        if(i >= n) return 0;                         //out of bound
+
+        if(dp[i][buy] != -1) return dp[i][buy];
+
+        int maxProfit = 0;
+        if(buy){
+            int buyKaro = -prices[i]  + solveMem(prices, i+1, 0);
+            int skipKaro = 0          + solveMem(prices, i+1, 1);
+            maxProfit = max(buyKaro, skipKaro);
+        }else{
+            int sellKaro = +prices[i] + solveMem(prices, i+2, 1);      //cool down (1 day so skip next day)
+            int skipKaro = 0          + solveMem(prices, i+1, 0);
+            maxProfit = max(sellKaro, skipKaro); 
+        }
+
+        return dp[i][buy] = maxProfit;
+    }
+    int maxProfit(vector<int>& prices) {
+        int n = prices.size();
+        dp.resize(n+1, vector<int>(2, -1));            //2 = buy allowed(0 , 1)
+        return solveMem(prices, 0, 1);                 //0 = initial index, 1 = buy allowed
+    }
+};
+/*
+Example 1:
+Input: prices = [1,2,3,0,2]
+Output: 3
+Explanation: transactions = [buy, sell, cooldown, buy, sell]
+
+Example 2:
+Input: prices = [1]
+Output: 0
+*/
+
+
+//384. BEST TIME TO BUY AND SELL STOCK VI (ONE DAY BUY & SELL MULTIPLE TIMES WITH FEE(ON EACH TRANSACTION)) 
+//SIMILAR TO BUY SELL V                                            {T.C = O(N {N*CONSTANT}), S.C = O(N)}
+//TOP DOWN (MEMOIZATION)
+//BUY (BUYKARO, SKIPKARO), SELL (SELLKARO(-FEE(TRANSACTION FEE)), SKIPKARO)
+class Solution {
+public:
+    vector<vector<int>>dp;
+    int solveMem(vector<int>&prices, int fee, int i, int buy){
+        int n = prices.size();
+        //base case
+        if(i >= n) return 0;                            //out of bound
+
+        if(dp[i][buy] != -1) return dp[i][buy];
+
+        int maxProfit = 0;
+        if(buy){
+            int buyKaro = -prices[i]  + solveMem(prices, fee, i+1, 0);
+            int skipKaro = 0          + solveMem(prices, fee, i+1, 1);
+            maxProfit = max(buyKaro, skipKaro);
+        }else{
+            int sellKaro = +prices[i] + solveMem(prices, fee, i+1, 1) - fee;   //deduct fee only on sell of stocks
+            int skipKaro = 0          + solveMem(prices, fee, i+1, 0);
+            maxProfit = max(sellKaro, skipKaro);
+        }
+
+        return dp[i][buy] = maxProfit;
+    }
+    int maxProfit(vector<int>& prices, int fee) {
+        int n = prices.size();
+        dp.resize(n+1, vector<int>(2, -1));             //2 = buy(1), sell(0)
+        return solveMem(prices, fee, 0, 1);             //0 = initial index, 1 = buy allowed
+    }
+};
+/*
+Example 1:
+Input: prices = [1,3,2,8,4,9], fee = 2
+Output: 8
+Explanation: The maximum profit can be achieved by:
+- Buying at prices[0] = 1
+- Selling at prices[3] = 8
+- Buying at prices[4] = 4
+- Selling at prices[5] = 9
+The total profit is ((8 - 1) - 2) + ((9 - 4) - 2) = 8.
+
+Example 2:
+Input: prices = [1,3,7,5,10,3], fee = 3
+Output: 6
+*/
+
+
+//DP ON LIS(LONGEST INCREASING SUBSEQUENCE)-----------------------------------------------------------------
+//385. LONGEST INCREASING SUBSEQUECE (LIS)                          {T.C = O(N^2), S.C = O(N^2)}
+//TOP DOWN (MEMOIZATION)
+//TAKE CURR AND PREV POINTER THEN , SIMPLE INCL & EXCL AND FIND MAXLEN(INCL, EXCL)
+class Solution {
+public:
+    int dp[2501][2501];
+    int solveMem(vector<int>&nums, int i, int p){
+        int n = nums.size();
+        //base case
+        if(i >= n) return 0;
+
+        if(dp[i][p+1] != -1) return dp[i][p+1];                 //p+1 for avoid negative index
+
+        int incl = 0;
+        if(p == -1 || nums[i] > nums[p]) incl = 1 + solveMem(nums, i+1, i);      //i become prev index and currIdx++
+        int excl = 0 + solveMem(nums, i+1, p);               //p will same (if not included curr )
+
+        return dp[i][p+1] = max(incl, excl);
+    }
+    int lengthOfLIS(vector<int>& nums) {
+        int n = nums.size();
+        memset(dp, -1, sizeof(dp));
+        return solveMem(nums, 0, -1);              //0 = initial index, -1 = prev index
+    }
+};
+
+//USING 1D DP VECTOR & 2 FOR LOOP(CURRIDX, PREVIDX)                  {T.C = O(N^2), S.C = O(N)}
+class Solution {
+public:
+    int lengthOfLIS(vector<int>& nums) {
+        int n = nums.size();
+        vector<int>dp(n, 1);                         //initially all dp element 1(min LIS len)
+        
+        int maxLen = 1;                             //atleast 1 element is there
+        for(int i = 0 ; i < n ;i++){                //i = currIdx
+            for(int p = 0 ; p < i ; p++){           //p = prevIdx
+                if(nums[p] < nums[i]){
+                    dp[i] = max(dp[i], 1 + dp[p]);
+                }
+            }
+            maxLen = max(maxLen, dp[i]);
+        }
+        return maxLen;
+    }
+};
+/*
+Example 1:
+Input: nums = [10,9,2,5,3,7,101,18]
+Output: 4
+Explanation: The longest increasing subsequence is [2,3,7,101], therefore the length is 4.
+
+Example 2:
+Input: nums = [0,1,0,3,2,3]
+Output: 4
+
+Example 3:
+Input: nums = [7,7,7,7,7,7,7]
+Output: 1
+*/
+
+
+//389. PRINT LONGEST INCREASING SUBSEQUENCE                        {T.C = O(N^2), S.C = O(N^2)}
+//TOP DOWN (MEMOIZATION)
+//FIND LIS LEN(USING ABOVE ) THEN BY USING THATS CREATED DP TABLE WE PRINT LIS.
+class Solution {
+public:
+    int dp[1001][1001];
+
+    int solveMem(vector<int>& arr, int i, int p) {
+        int n = arr.size();
+        // base case
+        if (i >= n) return 0;
+        
+        if (dp[i][p+1] != -1) return dp[i][p+1];
+        
+        int incl = 0, excl = 0;
+        if (p == -1 || arr[i] > arr[p]) {
+            incl = 1 + solveMem(arr, i + 1, i);  // i becomes prevIdx
+        }
+        excl = solveMem(arr, i + 1, p);  // p does not change
+        
+        return dp[i][p+1] = max(incl, excl);
+    }
+
+    vector<int> printLIS(vector<int>& arr) {
+        vector<int> ans;
+        int i = 0, p = -1, n = arr.size();
+        while (i < n) {
+            if (p == -1 || arr[i] > arr[p]) {
+                // if(dp[i][p+1] == 1 + dp[i+1][i+1]);        //not handle last elment
+                if (dp[i][p+1] == 1 + (i + 1 < n ? dp[i+1][i+1] : 0)) {
+                    ans.push_back(arr[i]);
+                    p = i;                                    //update prev to curr idx.
+                }
+            }
+            i++;
+        }
+        return ans;
+    }
+
+    vector<int> longestIncreasingSubsequence(int n, vector<int>& arr) {
+        memset(dp, -1, sizeof(dp));
+        solveMem(arr, 0, -1);  // Calculate LIS Length
+        return printLIS(arr);  // Print using solveMem created dp table
+    }
+};
+
+//USING 1D DP VECTOR                                               {T.C = O(N^2), S.C = O(N)}
+class Solution {
+  public:
+    vector<int> longestIncreasingSubsequence(int n, vector<int>& arr) {
+        vector<int>dp(n, 1);                         //fill all dp vector with 1(minlen)
+        vector<int>hash(n);
+        iota(hash.begin(), hash.end(), 0);           //work like hash(n, i);
+        
+        int lastIdx = 0;
+        int maxLen = 1;
+        for(int i = 0 ; i < n; i++){
+            for(int p = 0 ; p < i ; p++){
+                if(arr[p] < arr[i] && dp[i] < 1 + dp[p]){
+                    dp[i] = 1 + dp[p];
+                    hash[i] = p;
+                }
+            }
+            if(dp[i] > maxLen){
+                maxLen = dp[i];
+                lastIdx = i;
+            }
+        }
+        
+        //print
+        vector<int>ans;
+        ans.push_back(arr[lastIdx]);                    //push last element then backtrack for other
+        while(hash[lastIdx] != lastIdx){                //hash[i] == i (breaking point of list) // backtrack
+            lastIdx = hash[lastIdx];
+            ans.push_back(arr[lastIdx]);
+        }
+        reverse(ans.begin(), ans.end());
+        
+        return ans;
+    }
+};
+/*
+Example 1:
+Input:
+n = 16
+arr = [0,8,4,12,2,10,6,14,1,9,5,13,3,11,7,15]
+Output:
+0 4 6 9 13 15 
+Explanation:
+longest Increasing subsequence is 0 4 6 9 13 15  and the length of the longest increasing subsequence is 6.
+
+Example 2:
+Input:
+n = 1
+arr = [1]
+Output:
+1
+*/
+
+
+//390. LONGEST INCREASING SUBSEQUENCE (LIS) USING BINARY SEARCH         {T.C = O(N*LOGN), S.C = O(N)}
+//TRAVERSE ARR, IF CURR > LAST ? SIMPLY PUSH AND LEN++, FIND SAME OR JUST GREATER ELEMENT(LOWER_BOUND)
+//AND REPLACE ELEMENT, FINALLY RETURN MAXLEN.
+class Solution{
+public:
+    //USING BINARY SEARCH (N*LOGN)
+    int longestSubsequence(int n, int a[]){
+        vector<int>ans;
+        ans.push_back(a[0]);               //push 1st element
+        int maxLen = 1;                    //intial len 1(1st element)
+        for(int i = 1 ; i < n ;i++){
+            if(a[i] > ans.back()){
+                ans.push_back(a[i]);
+                maxLen++;
+            }else{                       //replace with same or just greater element
+                int it = lower_bound(ans.begin(), ans.end(), a[i]) - ans.begin();
+                ans[it] = a[i];
+            }
+        }
+        return maxLen;
+    }
+};
+/*
+Example 1:
+Input: n = 6, a[ ] = {5,8,3,7,9,1}
+Output: 3
+Explanation: There are more than one LIS in this array.  
+One such Longest increasing subsequence is {5,7,9}.
+
+Example 2:
+Input: n = 16, a[ ] = {0,8,4,12,2,10,6,14,1,9,5,13,3,11,7,15}
+Output: 6
+Explanation: There are more than one LIS in this array. 
+One such Longest increasing subsequence is {0,2,6,9,13,15}.
+*/
+
+
+//391. LARGEST DIVISIBLE SUBSET                                            {T.C = O(N^2), S.C = O(N)}
+//FIRST SORT NUMS(IT BECOMES SAME AS LIS PRINT), JUST REPLACE (NUMS[I] > NUM[P] WITH NUMS[I] % NUMS[P] == 0)
+class Solution {
+public:
+    vector<int> largestDivisibleSubset(vector<int>& nums) {
+        sort(nums.begin(), nums.end());                     //then apply simple LIS
+        int n = nums.size();
+        vector<int>dp(n, 1);
+        vector<int>hash(n);
+        iota(hash.begin(), hash.end(), 0);                    //fill with i(0,1,2...)
+
+        int lastIdx = 0;
+        int maxLen = 1;
+        for(int i = 0 ; i < n ; i++){
+            for(int p = 0 ; p < i ; p++){
+                if(nums[i] % nums[p] == 0 && dp[i] < 1 + dp[p]){   //LIS(nums[i] > nums[p])
+                    dp[i] = 1 + dp[p];
+                    hash[i] = p;
+                }
+            }
+            if(dp[i] > maxLen){
+                maxLen = dp[i];
+                lastIdx = i;
+            }
+        }
+        //print
+        vector<int>ans;
+        ans.push_back(nums[lastIdx]);                   //push last element first then backtrack for other
+        while(hash[lastIdx] != lastIdx){                //backtrack
+            lastIdx = hash[lastIdx];
+            ans.push_back(nums[lastIdx]);
+        }
+        reverse(ans.begin(), ans.end());               //ans is in reverse order 
+
+        return ans;
+    }
+};
+/*
+Example 1:
+Input: nums = [1,2,3]
+Output: [1,2]
+Explanation: [1,3] is also accepted.
+
+Example 2:
+Input: nums = [1,2,4,8]
+Output: [1,2,4,8]
+*/
+
+
+//392. LONGEST STRING CHAIN                                     
+//USING 2D DP                                                          {T.C = O(N^2*L), S.C = O(N^2)}
+class Solution {
+public:
+    int dp[1001][1001];
+    bool isPossible(string &curr, string &prev){
+        int n = curr.length(), m = prev.length();
+        
+        if(n != m+1) return false;                    //diff between string always 1(predecessor)
+            
+        //check proper subsequence
+        int i = 0, j = 0;                      //i = prevPointer, j = currPointer
+        while(i < m && j < n){
+            if(prev[i] == curr[j]){
+                i++;
+            }
+            j++;
+        }
+        return i == m;                         //all check
+    }
+    int solveMem(vector<string>&words, int i, int p){
+        int n = words.size();
+        //base case
+        if(i >= n) return 0;
+     
+        if(dp[i][p+1] != -1) return dp[i][p+1];
+
+        int incl = 0, excl = 0;
+        if(p == -1 || isPossible(words[i], words[p])){     
+            incl = 1 + solveMem(words, i+1, i);
+        }
+        excl = 0 + solveMem(words, i+1, p);
+
+        return dp[i][p+1] = max(incl, excl);
+    }
+    int longestStrChain(vector<string>& words) {
+        memset(dp, -1, sizeof(dp));
+
+        auto lambda = [&](auto a, auto b){             //sort on basis of string length
+            return a.length() < b.length();
+        };
+        sort(words.begin(), words.end(), lambda);
+
+        return solveMem(words, 0, -1);                  //0 = currIdx, -1 = prevIdx
+    }
+};
+
+//USING 1D DP                                                               {T.C = O(N^2*L), S.C = O(N)}
+class Solution {
+public:
+    //USING 1D DP
+    bool isPossible(string &curr, string &prev){
+        int n = curr.length(), m = prev.length();
+        //base case
+        if(n != m+1) return false;                       //predecessor should be 1 lesser size only
+        int i = 0, j = 0;
+        while(i < m && j < n){               //i = prev, j= curr
+            if(prev[i] == curr[j]) i++;
+            j++;
+        }
+        return i == m;
+    }
+    int longestStrChain(vector<string>& words) {
+        auto lambda = [&](auto &a, auto &b){
+            return a.length() < b.length();
+        };
+        sort(words.begin(), words.end(), lambda);      //sort according to length
+        int n = words.size();
+        vector<int>dp(n, 1);
+        
+        int maxLen = 1;
+        for(int i = 0 ; i < n ; i++){
+            for(int p = 0 ; p < i ; p++){
+                if(isPossible(words[i], words[p]) && dp[i] < 1 + dp[p]){
+                    dp[i] = 1 + dp[p];
+                }
+            }
+            maxLen = max(maxLen, dp[i]);
+        }
+        return maxLen;
+    }
+};
+/*
+Example 1:
+Input: words = ["a","b","ba","bca","bda","bdca"]
+Output: 4
+Explanation: One of the longest word chains is ["a","ba","bda","bdca"].
+
+Example 2:
+Input: words = ["xbc","pcxbcf","xb","cxbc","pcxbc"]
+Output: 5
+Explanation: All the words can be put in a word chain ["xb", "xbc", "cxbc", "pcxbc", "pcxbcf"].
+
+Example 3:
+Input: words = ["abcd","dbqca"]
+Output: 1
+Explanation: The trivial word chain ["abcd"] is one of the longest word chains.
+["abcd","dbqca"] is not a valid word chain because the ordering of the letters is changed.
+*/
+
+
+//393. LONGEST BITONIC SUBSEQUENCE                                         {T.C = O(N^2), S.C = O(N)}
+//USING 1D DP
+//WE FIND LIS FROM FRONT AND BACK(REVERSING) BOTH THEN IF DP'S VALUE > 1 ? (DP1(I) + DP2(N-1-I) -1) MAX
+class Solution {
+  public:
+    int lis(vector<int>&nums, int n, vector<int>&dp){
+        int maxLen = 1;
+        for(int i = 0 ; i < n ; i++){
+            for(int p = 0 ; p < i ; p++){
+                if(nums[p] < nums[i] && dp[i] < 1 + dp[p]) dp[i] = 1 + dp[p];
+            }
+            maxLen = max(maxLen, dp[i]);
+        }
+        return maxLen;
+    }
+    int LongestBitonicSequence(int n, vector<int> &nums) {
+        vector<int>dp1(n, 1), dp2(n, 1);
+        int lisFrontLen = lis(nums, n, dp1);
+        reverse(nums.begin(), nums.end());
+        int lisBackLen  = lis(nums, n, dp2);
+        
+        int maxLenBitonic = 0;                           //bitonic(increasing, decreasing or both)
+        for(int i = 0 ; i < n ; i++){
+            // maxLenBitonic = max(maxLenBitonic, dp1[i]+dp2[n-1-i]-1);   //when only (inc & dec) allowed  
+            if (dp1[i] > 1 && dp2[n - 1 - i] > 1) {
+                maxLenBitonic = max(maxLenBitonic, dp1[i] + dp2[n - 1 - i] - 1);    //-1 for curr count twice
+            }
+        }
+        return maxLenBitonic;
+    }
+};
+/*
+Input: n = 5, nums[] = [1, 2, 5, 3, 2]
+Output: 5
+Explanation: The sequence {1, 2, 5} is increasing and the sequence {3, 2} is decreasing so merging both we will get length 5.
+
+Input: n = 8, nums[] = [1, 11, 2, 10, 4, 5, 2, 1]
+Output: 6
+Explanation: The bitonic sequence {1, 2, 10, 4, 2, 1} has length 6.
+*/
+
+
+//394. NUMBER OF LONGEST INCREASING SEQUENCE (LIS)                      {T.C = O(N^2), S.C = O(N)}
+//USING 1D DP
+//TAKE COUNT VECTOR(COUNT AT THAT POINTS LIS LENGTH), IF(PREV DP COUNT == SAME) COUNT += COUNT PREV ELSE UPDATE CURRCOUNT
+//FINALLY TAKE FOR LOOP AND SEARCH DP[I] == MAXLEN , RETURN ITS COUNT[I].
+class Solution {
+public:
+    int findNumberOfLIS(vector<int>& nums) {
+        int n = nums.size();
+        vector<int>dp(n, 1), count(n, 1);           //count = no. of lis at that point (at that point lis)
+        int maxLen = 1;
+        for(int i = 0 ; i < n; i++){
+            for(int p = 0 ; p < i ; p++){
+                if(nums[p] < nums[i]){
+                    if(dp[i] < 1 + dp[p]){
+                        dp[i] = 1 + dp[i];
+                        count[i] = count[p];
+                    } 
+                    else if(dp[i] == 1 + dp[p]) count[i] += count[p];
+                }
+            }
+            maxLen = max(maxLen, dp[i]);
+        }
+
+        int totalMaxLIS = 0;
+        for(int i = 0 ; i < n ; i++){
+            if(dp[i] == maxLen) totalMaxLIS  += count[i];
+        }
+        return totalMaxLIS;
+    }
+};
+/*
+Example 1:
+Input: nums = [1,3,5,4,7]
+Output: 2
+Explanation: The two longest increasing subsequences are [1, 3, 4, 7] and [1, 3, 5, 7].
+
+Example 2:
+Input: nums = [2,2,2,2,2]
+Output: 5
+Explanation: The length of the longest increasing subsequence is 1, and there are 5 increasing subsequences of length 1, so output 5.
+*/
+
+
+//MATRIX CHAIN MULTIPLICATION (MCM)/ PARTITION DP---------------------------------------------------------------------------
+/*RULE
+1. Starts with entire block / array (mark i(start), j(end))
+2. Try all partitions. (run a loop for all partitions)
+3. Return the Best 2 partions
+*/
+//395, 396. MATRIX CHAIN MULTIPLICATION                                         {T.C = O(N^3), S.C = O(N^2)}
+//TOP DOWN (MEMOIZATION)
+//BASE CASE(I == J (ONLY 1 ELEMENT {NO OPER REQ})), TAKE LOOP K(I TO J-1), FIND MIN OP (A[I-1]*A[K]*A[J]) + SOLVE(I,K), 
+//+ SOLVE(K+1, J);
+class Solution{
+public:
+    int dp[101][101];
+    int solveMem(int arr[], int i, int j){
+        //base case
+        if(i == j) return 0;                            //no operation required(single element)
+        
+        if(dp[i][j] != -1) return dp[i][j];
+        
+        int operations = 0, mini = INT_MAX;
+        //loop of k from i to j-1
+        for(int k = i ; k < j ; k++){
+            operations = arr[i-1]*arr[k]*arr[j] + solveMem(arr, i, k) + solveMem(arr, k+1, j);
+            mini = min(mini, operations);
+        }
+        
+        return dp[i][j] = mini;
+    }
+    int matrixMultiplication(int N, int arr[]){
+        memset(dp,-1, sizeof(dp));
+        return solveMem(arr, 1, N-1);                    //1 = initial index (partition dp)
+    }
+};
+/*
+Example 1:
+Input: N = 5
+arr = {40, 20, 30, 10, 30}
+Output: 26000
+Explanation: There are 4 matrices of dimension 
+40x20, 20x30, 30x10, 10x30. Say the matrices are 
+named as A, B, C, D. Out of all possible combinations,
+the most efficient way is (A*(B*C))*D. 
+The number of operations are -
+20*30*10 + 40*20*10 + 40*10*30 = 26000.
+
+Example 2:
+Input: N = 4
+arr = {10, 30, 5, 60}
+Output: 4500
+Explanation: The matrices have dimensions 
+10*30, 30*5, 5*60. Say the matrices are A, B 
+and C. Out of all possible combinations,the
+most efficient way is (A*B)*C. The 
+number of multiplications are -
+10*30*5 + 10*5*60 = 4500.
+*/
+
+
+//397. MINIMUM COSTS TO CUT A STICK                                      {T.C = O(N^3), S.C = O(N^2)}
+//TOP DOWN (MEMOIZATION)
+//INSERT 0 & N IN CUTS VECTOR, THEN SORT, THEN APPLY MCM , LOOP OF K(I, J-1 ), ADD COST = CUTS[J]-CUTS[I] AND RECURSIVE CALL
+// THEN FIND MIN COSTS.
+class Solution {
+public:
+    int dp[105][105];                             //ON CUTS NOT LEN (SHOULD BE at least 103)
+    int solve(vector<int>& cuts, int i, int j) {
+        if(i >= j) return 0;                    //invalid case
+        
+        if(dp[i][j] != -1) return dp[i][j];
+        
+        int mini = INT_MAX;
+        for(int k = i; k <= j-1; k++) {          //traverse on cuts only (not whole len)
+            int cost = (cuts[j]-cuts[i-1]) + solve(cuts, i, k) + solve(cuts, k+1, j);
+            mini = min(mini, cost);
+        }
+        
+        return dp[i][j] = mini;
+        
+    }
+    
+    int minCost(int n, vector<int>& cuts) {
+        sort(cuts.begin(), cuts.end());                //required for this only
+        cuts.insert(begin(cuts), 0);                   //insert 0 at beginning
+        cuts.push_back(n);                             //insert n(len) at last
+
+        memset(dp, -1, sizeof(dp));
+        int m = cuts.size();
+        return solve(cuts, 1, m-1);
+    }
+};
+/*
+Example 1:
+Input: n = 7, cuts = [1,3,4,5]
+Output: 16
+Explanation: Using cuts order = [1, 3, 4, 5] as in the input leads to the following scenario:
+The first cut is done to a rod of length 7 so the cost is 7. The second cut is done to a rod of length 6 (i.e. the second part of the first cut), the third is done to a rod of length 4 and the last cut is to a rod of length 3. The total cost is 7 + 6 + 4 + 3 = 20.
+Rearranging the cuts to be [3, 5, 1, 4] for example will lead to a scenario with total cost = 16 (as shown in the example photo 7 + 4 + 3 + 2 = 16).
+
+Example 2:
+Input: n = 9, cuts = [5,6,1,4,2]
+Output: 22
+Explanation: If you try the given cuts ordering the cost will be 25.
+There are much ordering with total cost <= 25, for example, the order [4, 6, 5, 2, 1] has total cost = 22 which is the minimum possible.
+*/
+
+
+//398. BURST BALLOONS                                                   {T.C = O(N^3), S.C = O(N^2)}
+//TOP DOWN (MEMOIZATION)
+//ADD 1 ON BEGIN AND END, THEN SAME AS ABOVE , JUST (ADD NUM[I-1]*NUMS[K]*NUMS[J] {ACCORDING TO QUESTION})
+class Solution {
+public:
+    int dp[305][305];
+    int solveMem(vector<int>&nums, int i, int j){
+        //base case
+        if(i >= j) return 0;
+
+        if(dp[i][j] != -1) return dp[i][j];
+
+        int coins = 0, maxCoins = INT_MIN;
+        for(int k = i ; k <= j-1 ; k++){
+            coins = nums[i-1]*nums[k]*nums[j] + solveMem(nums, i, k) + solveMem(nums, k+1, j);
+            maxCoins = max(maxCoins, coins);
+        }
+
+        return dp[i][j] = maxCoins;
+    }
+    int maxCoins(vector<int>& nums) {
+        nums.insert(nums.begin(), 1);             //insert 1 at beginnning
+        nums.push_back(1);                        //insert 1 at end
+
+        memset(dp, -1, sizeof(dp));
+        int m = nums.size();
+        return solveMem(nums, 1, m-1);           //1 = initial index (mcm), m-1 (j)
+    }
+};
+/*
+Example 1:
+Input: nums = [3,1,5,8]
+Output: 167
+Explanation:
+nums = [3,1,5,8] --> [3,5,8] --> [3,8] --> [8] --> []
+coins =  3*1*5    +   3*5*8   +  1*3*8  + 1*8*1 = 167
+
+Example 2:
+Input: nums = [1,5]
+Output: 10
+*/
+
+
+//399. BOOLEAN EVALUATION                                                {T.C = O(N^3), S.C = O(N^2*2(T,F))}
+//TOP DOWN (MEMOIZATION)
+//INIITIAL INDEX = 0 (OTHER MCM 1) => NO INVALID AT START AND END ONLY(T, F), THEN SIMILAR TO MCM, FOR LOOP(K - I TO J-1)
+//FIND LT,LF,RT,RF, AND CHECK ALL OPERATOR(&,|,^) , STORE WAYS OF TRUE IN DP.
+int mod = 1e9+7;
+int dp[205][205][2];                     //i,j, isTrue(t,f)
+int solveMem(int i, int j, int isTrue, string &s) {
+    //base case
+    if(i>j) return 0;                      //invalid case
+    if(i==j) {                             //check for char 'T', 'F'
+        if(isTrue) return s[i]=='T';
+        else return s[i] == 'F';
+    }
+
+    if(dp[i][j][isTrue] != -1) return dp[i][j][isTrue];
+
+    long long ways = 0;
+    for(int k=i; k<j; k++) {            //0 to n-1 (other mcm 1 to n-1)
+        long long leftTrue = solveMem(i, k-1, 1, s);
+        long long leftFalse = solveMem(i, k-1, 0, s);
+        long long rightTrue = solveMem(k+1, j, 1, s);
+        long long rightFalse = solveMem(k+1, j, 0, s);
+
+        if(s[k] == '&') {                        //t-> t&t, f->t&f, f&f, t&f 
+            if(isTrue) ways = (ways + (leftTrue*rightTrue)%mod)%mod;
+            else ways = (ways + (leftFalse*rightTrue)%mod + (leftFalse*rightFalse)%mod + (leftTrue*rightFalse)%mod)%mod;
+        }
+        else if(s[k] == '|') {                   //t->t|t, t|f, f|t, f->f|f
+            if(isTrue) ways = (ways + (leftTrue*rightTrue)%mod + (leftTrue*rightFalse)%mod + (leftFalse*rightTrue)%mod)%mod;
+            else ways = (ways + (leftFalse*rightFalse)%mod)%mod;
+        }else {                                  //t->t^f, f^t, f->t^t, f^f
+            if(isTrue) ways = (ways + (leftTrue*rightFalse)%mod + (leftFalse*rightTrue)%mod)%mod;
+            else ways = (ways + (leftTrue*rightTrue)%mod + (leftFalse*rightFalse)%mod)%mod;
+        }
+    }
+
+    return dp[i][j][isTrue] = ways;
+}
+
+int evaluateExp(string & exp) {
+    int n = exp.size();
+    memset(dp, -1, sizeof(dp));
+    return solveMem(0,n-1, 1, exp);             //0 in that case (other mcm 1)
+}
+/*
+Sample Input 1 :
+T^T^F    
+Sample Output 1 :
+0
+Explanation For Sample Input 1:
+There are total 2  ways to parenthesize this expression:
+(i) (T^T)^(F) = F
+(ii) (T)^(T^F) = F
+Both ways will result in False, so we will return 0.
+
+Sample Input 2 :
+F|T^F
+Sample Output 2 :
+2
+Explanation For Sample Input 2:
+For the first test case:
+There are total 2  ways to parenthesize this expression:
+(i) (F|T)^(F) = T
+(ii) (F)|(T^F) = T
+Both ways will result in True, so we will return 2.
+*/
+
+
+//FRONT PARTITION=======================================================================================================
+//400. PALINDROME PARTITIONING II                                          {T.C = O(N^2), S.C = O(N)}
+//TOP DOWN (MEMOIZATION)
+//DIFFERENT FROM NORMAL MCM, MAKE 1D DP, ITERATE ON STRING AND WITH STRING , CREATE PARTION AND CHECK FOR VALID 
+//PALINDROME AND FIND MIN OF IT.
+class Solution {
+public:
+    int dp[2005];
+    /*
+    bool isPalindrome(string &s){
+        int n = s.length();
+        for(int i = 0 ; i < n ; i++){
+            if(s[i] != s[n-1-i]) return false;
+        }
+        return true;
+    }
+    */
+    bool isPalindrome(string &s, int l, int r){
+        while(l < r){
+            if(s[l++] != s[r--]) return false;
+        }
+        return true;
+    }
+    int solveMem(string &s, int i){
+        int n = s.length();
+        //base case
+        if(i == n) return 0;
+
+        if(dp[i] != -1) return dp[i];
+
+        // string temp = "";
+        int minCost = INT_MAX, cost = 0;
+        for(int j = i ; j < n ; j++){
+            // temp += s[j];
+            // if(isPalindrome(temp)){
+            if(isPalindrome(s, i, j)){             //check string i to j
+                cost = 1 + solveMem(s, j+1);       //next i = j+1
+                minCost = min(cost, minCost);
+            } 
+        }
+        return dp[i] = minCost;
+    }
+    int minCut(string s) {
+        memset(dp, -1, sizeof(dp));
+        return solveMem(s, 0)-1;                       //0 = initial index, -1 = exclude partition of after end string
+    }
+};
+/*
+Example 1:
+Input: s = "aab"
+Output: 1
+Explanation: The palindrome partitioning ["aa","b"] could be produced using 1 cut.
+
+Example 2:
+Input: s = "a"
+Output: 0
+
+Example 3:
+Input: s = "ab"
+Output: 1
+*/
+
+
+//401. PARTITION ARRAY FOR MAXIMUM SUM                                   {T.C = O(N^2), S.C = O(N)}
+//TOP DOWN (MEMOIZATION)
+//USING FRONT PARTITION, LOOP(I TO I+K), FIND LEN, MAXELE, SUM(LEN*MAXLEN) THEN RECURSIVE CALL AND FIND MAXSUM.
+class Solution {
+public:
+    int dp[505];
+    int solveMem(vector<int>&arr, int i, int k){
+        int n = arr.size();
+        //base case
+        if(i == n) return 0;
+
+        if(dp[i] != -1) return dp[i];
+
+        int len = 0,maxEle = INT_MIN, sum = 0, maxSum = INT_MIN;
+        for(int j = i ; j < min(n, i+k) ; j++){
+            len++;
+            maxEle = max(maxEle, arr[j]);
+            sum = len*maxEle + solveMem(arr, j+1, k);
+            maxSum = max(maxSum, sum);
+        }
+
+        return dp[i] = maxSum;
+    }
+    int maxSumAfterPartitioning(vector<int>& arr, int k) {
+        memset(dp, -1, sizeof(dp));
+        return solveMem(arr, 0, k);                        //0 = initial index, k = maxLen subarray
+    }
+};
+/*
+Example 1:
+Input: arr = [1,15,7,9,2,5,10], k = 3
+Output: 84
+Explanation: arr becomes [15,15,15,9,10,10,10]
+
+Example 2:
+Input: arr = [1,4,1,5,7,3,6,1,9,9,3], k = 4
+Output: 83
+
+Example 3:
+Input: arr = [1], k = 1
+Output: 1
+*/
+
+
+//DP ON SQUARES--------------------------------------------------------------------------------------------------------
+//402. MAXIMAL RECTANGLE                                                 {T.C = O(N^2), S.C = O(N)}
+//CREATE HISTOGRAM, FIND MAX RECTANGLE, FIND NEXT AND PREV SMALLER (L = H[I], W = NEXT[I]-PREV[I]-1).
+class Solution {
+public:
+    //PSL(PREVIOUS SMALLER LEFT)
+    vector<int>prevSmaller(vector<int>arr , int n){
+        stack<int>stk;
+        vector<int>ans(n);
+        for(int i = 0 ; i < n ; i++){
+            while(!stk.empty() && arr[i] <= arr[stk.top()]){
+                stk.pop();
+            }
+            ans[i] = stk.empty() ? -1 : stk.top();
+            stk.push(i);
+        }
+        return ans;
+    }
+    //NSR(NEXT SMALLER RIGHT)
+    vector<int>nextSmaller(vector<int>arr , int n){
+        stack<int>stk;
+        vector<int>ans(n);
+
+        for(int i = n-1 ; i >= 0 ; i--){
+            while(!stk.empty() && arr[i] <= arr[stk.top()]){
+                stk.pop();
+            }
+            ans[i] = stk.empty() ? n : stk.top();
+            stk.push(i);
+        }
+        return ans;
+    }
+
+    int largestRectangleArea(vector<int>& heights) {
+        int n = heights.size();
+        vector<int>next = nextSmaller(heights, n);
+        vector<int>prev = prevSmaller(heights, n);
+        int maxArea = 0;
+        for(int i = 0 ; i < n ; i++){
+            //l = heights[i], b = (next[i]-prev[i]-1)
+            maxArea = max(maxArea, heights[i]*(next[i]-prev[i]-1));
+        }
+        return maxArea;
+    }
+    int maximalRectangle(vector<vector<char>>& matrix) {
+        int n = matrix.size();
+        int m = matrix[0].size();
+        int maxi = 0;
+        vector<int>histogram(m, 0);                          //height (initially all h=0)
+
+        for(int i =  0 ; i < n ; i++){
+            //to create histogram array
+            for(int j = 0 ; j < m ; j++){
+                if(matrix[i][j] == '1') histogram[j]++;      //increasing height
+                else histogram[j] = 0;                       //reset heigth to 0
+            }
+            maxi = max(maxi, largestRectangleArea(histogram));
+        }
+        return maxi;
+    }
+};
+/*
+Example 1:
+Input: matrix = [["1","0","1","0","0"],
+                 ["1","0","1","1","1"],
+                 ["1","1","1","1","1"],
+                 ["1","0","0","1","0"]]
+Output: 6
+Explanation: The maximal rectangle is shown in the above picture.
+
+Example 2:
+Input: matrix = [["0"]]
+Output: 0
+
+Example 3:
+Input: matrix = [["1"]]
+Output: 1
+*/
+
+
+//403. COUNT SQUARE SUBMATRICES WITH ALL 1'S                                 {T.C = O(N^2), S.C = O(N^2)}
+//TOP DOWN (MEMOIZATION {DP[0]})
+//FILL DP TABLE, IF I == 0 OR J == 0 DP[I][J] = 1, ELSE 1 + MIN(UP, LEFT, UPPER LEFT), FIND SUM OF ALL DP TABLE(COUNTS)
+class Solution {
+public:
+    int dp[305][305];
+    int countSquares(vector<vector<int>>& matrix) {
+        int n = matrix.size(), m = matrix[0].size();
+        memset(dp, 0, sizeof(dp));
+
+        int sum = 0;
+        for (int i = 0; i < n; i++) {
+            for (int j = 0; j < m; j++) {
+                if (matrix[i][j] == 1) {
+                    if (i == 0 || j == 0) {
+                        dp[i][j] = 1;
+                    } else {
+                        dp[i][j] = 1 + min({dp[i-1][j], dp[i][j-1], dp[i-1][j-1]});
+                    }
+                    sum += dp[i][j];
+                }
+            }
+        }
+        return sum;
+    }
+};
+/*
+Example 1:
+Input: matrix =
+[
+  [0,1,1,1],
+  [1,1,1,1],
+  [0,1,1,1]
+]
+Output: 15
+Explanation: 
+There are 10 squares of side 1.
+There are 4 squares of side 2.
+There is  1 square of side 3.
+Total number of squares = 10 + 4 + 1 = 15.
+
+Example 2:
+Input: matrix = 
+[
+  [1,0,1],
+  [1,1,0],
+  [1,1,0]
+]
+Output: 7
+Explanation: 
+There are 6 squares of side 1.  
+There is 1 square of side 2. 
+Total number of squares = 6 + 1 = 7.
+*/
+
+
+
+/*-----------------------------------------------THE END---------------------------------------------------------------*/
