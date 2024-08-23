@@ -107,3 +107,66 @@ Example 3:
 Input: nums = [1,1,5]
 Output: [1,5,1]
 */
+
+
+//03. SIEVE'S ALGO TO FINDING PRIME TILL N                                  {T.C = O(N*LOG(LOGN)), S.C = O(N)}
+class Solution{
+public:
+    vector<int> sieveOfEratosthenes(int n){
+        vector<bool>isPrime(n+1, true);
+        isPrime[0] = isPrime[1] = false;
+        for(int i = 2 ; i*i <= n ; i++){
+            if(isPrime[i] == true){
+                for(int j = i*i ; j <= n ; j += i){
+                    isPrime[j] = false;
+                }
+            }
+        }
+        vector<int>needed;
+        for(int i = 2 ; i <= n ;i++){
+            if(isPrime[i] == true) needed.push_back(i);
+        }
+        return needed;
+    }
+};
+/*
+Example 1:
+Input:
+N = 10
+Output:
+2 3 5 7
+Explanation:
+Prime numbers less than equal to N 
+are 2 3 5 and 7.
+
+Example 2:
+Input:
+N = 35
+Output:
+2 3 5 7 11 13 17 19 23 29 31
+Explanation:
+Prime numbers less than equal to 35 are
+2 3 5 7 11 13 17 19 23 29 and 31.
+*/
+
+
+//04. CONVERSTION DEC TO BINARY , BINARY TO DECIMAL                              {T.C = O(N), S.C = O(N)}
+class Solution {
+public:
+    int findComplement(int num) {
+        // Convert num to binary string
+        string binary = "";
+        while (num > 0) {                                     //DEC TO BINARY
+            binary = (num % 2 == 0 ? '0' : '1') + binary;
+            num /= 2;
+        }
+
+        string compliment(binary.size(), ' ');
+
+        for (int i = 0; i < binary.size(); i++) {              // Find the complement
+            compliment[i] = (binary[i] == '0' ? '1' : '0');
+        }
+
+        return stoi(compliment, nullptr, 2);         //binary to dec
+    }
+};
