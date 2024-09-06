@@ -301,7 +301,7 @@ class Solution {
         /*
         //handle disconnected components
         for(int i = 0 ; i < V ; i++){
-            dfs(0, adj, ans, vis);                                  //0 = starting index or node
+            dfs(i, adj, ans, vis);                                  //0 = starting index or node
         }
         */
     }

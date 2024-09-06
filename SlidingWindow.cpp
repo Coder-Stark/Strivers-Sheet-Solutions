@@ -3,6 +3,15 @@
 #include<bits/stdc++.h>
 using namespace std;
 
+/*
+MULTISET ALLOWS    (QUES = 33)
+1. KEEP DUPLICATE ELEMENT 
+2. STORE IN SORTED MANNER  (EFICIENTLY FIND MAX AND MIN ELEMENT)
+3. DELETE AND INSERT IS EASY       
+
+insert , find = logn
+*/
+
 //01. MAXIMUM STRONG PAIR XOR I                                          {T.C = O(N^2), S.C = O(1)}                    
 //BRUTE FORCE
 class Solution {
@@ -1259,4 +1268,1129 @@ Example 3:
 Input: nums = [2,1,5,6,0,9,5,0,3,8], firstLen = 4, secondLen = 3
 Output: 31
 Explanation: One choice of subarrays is [5,6,0,9] with length 4, and [0,3,8] with length 3.
+*/
+
+
+//29. COUNT SUBARRAYS WHERE MAX ELEMENT APPEARS AT LEAST K TIMES                {T.C = O(N), S.C = O(1)}
+class Solution {
+public:
+    typedef long long ll;
+    long long countSubarrays(vector<int>& nums, int k) {
+        int n = nums.size();
+        int maxEle = *max_element(nums.begin(), nums.end());
+        ll count = 0, totalCount = 0;
+        int i = 0, j = 0;
+        while(j < n){
+            if(nums[j] == maxEle) count++;
+
+            while(count >= k){
+                totalCount += (n-j);
+
+                if(nums[i] == maxEle) count--;            //shrink window
+                i++;
+            }
+            j++;
+        }
+        return totalCount;
+    }
+};
+/*
+Example 1:
+Input: nums = [1,3,2,3,3], k = 2
+Output: 6
+Explanation: The subarrays that contain the element 3 at least 2 times are: [1,3,2,3], [1,3,2,3,3], [3,2,3], [3,2,3,3], [2,3,3] and [3,3].
+
+Example 2:
+Input: nums = [1,4,2,1], k = 3
+Output: 0
+Explanation: No subarray contains the element 4 at least 3 times.
+*/
+
+
+//30. MAXIMUM NUMBER OF VOWELS IN A SUBSTRING OF GIVEN LENGTH                  {T.C = O(N), S.C = O(1)}
+class Solution {
+public:
+    bool isVowel(char ch){
+        if(ch == 'a' || ch == 'e' || ch == 'i' || ch == 'o' || ch == 'u') return true;
+        return false;
+    }
+    int maxVowels(string s, int k) {
+        int n = s.length();
+        int countVowel = 0;
+        int maxCount = 0;
+        int i = 0, j= 0;
+        while(j < n){
+            if(isVowel(s[j])) countVowel++;
+
+            if(j-i+1 == k){
+                maxCount = max(maxCount, countVowel);
+
+                if(isVowel(s[i])) countVowel--;
+                i++;
+            }
+            j++;
+        } 
+        return maxCount;
+    }
+};
+/*
+Example 1:
+Input: s = "abciiidef", k = 3
+Output: 3
+Explanation: The substring "iii" contains 3 vowel letters.
+
+Example 2:
+Input: s = "aeiou", k = 2
+Output: 2
+Explanation: Any substring of length 2 contains 2 vowels.
+
+Example 3:
+Input: s = "leetcode", k = 3
+Output: 2
+Explanation: "lee", "eet" and "ode" contain 2 vowels.
+*/
+
+
+//31. MAXIMUM ERASURE VALUE                                             {T.C = O(N), S.C = O(N)}
+class Solution {
+public:
+    int maximumUniqueSubarray(vector<int>& nums) {
+        int n = nums.size();
+        unordered_map<int,int>mp;
+        int sum = 0;
+        int maxSum = 0;
+        int i = 0, j = 0;
+        while(j < n){
+            mp[nums[j]]++;
+            sum += nums[j];                         //first sum of all then reduce (by check below code)
+
+            while(mp[nums[j]] > 1){
+                mp[nums[i]]--;
+
+                if(mp[nums[i]] == 0) mp.erase(nums[i]);
+                sum -= nums[i];
+                i++;
+            } 
+            maxSum = max(maxSum, sum);
+            j++;
+        }
+        return maxSum;  
+    }
+};
+/*
+Example 1:
+Input: nums = [4,2,4,5,6]
+Output: 17
+Explanation: The optimal subarray here is [2,4,5,6].
+
+Example 2:
+Input: nums = [5,2,1,2,5,2,1,2,5]
+Output: 8
+Explanation: The optimal subarray here is [5,2,1] or [1,2,5].
+*/
+
+
+//32. GET EQUAL SUBSTRINGS WITHIN BUDGET                                      {T.C = O(N), S.C = O(1)}
+class Solution {
+public:
+    int equalSubstring(string s, string t, int maxCost) {
+        int n = s.length();              //s == t
+        int  cost = 0;
+        int maxLen = 0;
+        int i = 0, j = 0;
+        while(j < n){
+            cost += abs(s[j]-t[j]);
+
+            while(cost > maxCost){
+                cost -= abs(s[i]-t[i]);
+                i++;
+            }
+            maxLen = max(maxLen, j-i+1);
+            j++;
+        }
+        return maxLen;
+    }
+};
+/*
+Example 1:
+Input: s = "abcd", t = "bcdf", maxCost = 3
+Output: 3
+Explanation: "abc" of s can change to "bcd".
+That costs 3, so the maximum length is 3.
+
+Example 2:
+Input: s = "abcd", t = "cdef", maxCost = 3
+Output: 1
+Explanation: Each character in s costs 2 to change to character in t,  so the maximum length is 1.
+
+Example 3:
+Input: s = "abcd", t = "acde", maxCost = 0
+Output: 1
+Explanation: You cannot make any change, so the maximum length is 1.
+*/
+
+
+//33. LONGEST CONTINUOUS SUBARRAY WITH ABSOLUTE DIFF LESS THAN OR EQUAL TO LIMIT  {T.C = O(N*LOGN), S.C = O(N)}
+//USING MULTISET
+class Solution {
+public:
+    int longestSubarray(vector<int>& nums, int limit) {
+        int n = nums.size();
+        multiset<int>mst;
+        int maxLen = 0;
+        int i = 0, j = 0;
+        while(j < n){
+            mst.insert(nums[j]);
+
+            if((*mst.rbegin()-*mst.begin()) > limit){          //rbegin => end() (in vector)
+                mst.erase(mst.find(nums[i]));
+                i++;
+            }
+            maxLen = max(maxLen, j-i+1);
+            j++;
+        }
+        return maxLen;
+    }
+};
+/*
+Example 1:
+Input: nums = [8,2,4,7], limit = 4
+Output: 2 
+Explanation: All subarrays are: 
+[8] with maximum absolute diff |8-8| = 0 <= 4.
+[8,2] with maximum absolute diff |8-2| = 6 > 4. 
+[8,2,4] with maximum absolute diff |8-2| = 6 > 4.
+[8,2,4,7] with maximum absolute diff |8-2| = 6 > 4.
+[2] with maximum absolute diff |2-2| = 0 <= 4.
+[2,4] with maximum absolute diff |2-4| = 2 <= 4.
+[2,4,7] with maximum absolute diff |2-7| = 5 > 4.
+[4] with maximum absolute diff |4-4| = 0 <= 4.
+[4,7] with maximum absolute diff |4-7| = 3 <= 4.
+[7] with maximum absolute diff |7-7| = 0 <= 4. 
+Therefore, the size of the longest subarray is 2.
+
+Example 2:
+Input: nums = [10,1,2,4,7,2], limit = 5
+Output: 4 
+Explanation: The subarray [2,4,7,2] is the longest since the maximum absolute diff is |2-7| = 5 <= 5.
+
+Example 3:
+Input: nums = [4,2,2,2,4,4,2,2], limit = 0
+Output: 3
+*/
+
+
+//34. LENGTH OF LONGEST SUBARRAY WITH AT MOST K FREQUENCY                   {T.C = O(N), S.C = O(N)}
+class Solution {
+public:
+    int maxSubarrayLength(vector<int>& nums, int k) {
+        int n = nums.size();
+        unordered_map<int,int>mp;
+        int maxLen = 0;
+        int i = 0, j = 0;
+        while(j < n){
+            mp[nums[j]]++;
+            
+            while(mp[nums[j]] > k){             //not mp.size(){distinct ele}, mp[nums[j]]{freq}
+                mp[nums[i]]--;
+
+                if(mp[nums[i]] == 0) mp.erase(nums[i]);      //no need in this question
+                i++;
+            }
+            maxLen = max(maxLen, j-i+1);
+            j++;
+        }
+        return maxLen;
+    }
+};
+/*
+Example 1:
+Input: nums = [1,2,3,1,2,3,1,2], k = 2
+Output: 6
+Explanation: The longest possible good subarray is [1,2,3,1,2,3] since the values 1, 2, and 3 occur at most twice in this subarray. Note that the subarrays [2,3,1,2,3,1] and [3,1,2,3,1,2] are also good.
+It can be shown that there are no good subarrays with length more than 6.
+
+Example 2:
+Input: nums = [1,2,1,2,1,2,1,2], k = 1
+Output: 2
+Explanation: The longest possible good subarray is [1,2] since the values 1 and 2 occur at most once in this subarray. Note that the subarray [2,1] is also good.
+It can be shown that there are no good subarrays with length more than 2.
+
+Example 3:
+Input: nums = [5,5,5,5,5,5,5], k = 4
+Output: 4
+Explanation: The longest possible good subarray is [5,5,5,5] since the value 5 occurs 4 times in this subarray.
+It can be shown that there are no good subarrays with length more than 4.
+*/
+
+
+/*NOT REGULAR PATTERN-------------------------------------------------------------------------------------------------*/
+//35. LONGEST REPEATING CHARACTER REPLACEMENT                              {T.C = O(N), S.C = O(1)}
+class Solution {
+public:
+    int characterReplacement(string s, int k) {
+        int n = s.length();
+        unordered_map<char, int> mp;
+        int maxFreq = 0;
+        int maxLen = 0;
+        int i = 0, j = 0;
+
+        while (j < n) {
+            mp[s[j]]++;
+            maxFreq = max(maxFreq, mp[s[j]]);
+
+            // If the number of characters to be replaced exceeds k, shrink the window
+            if ( (j-i+1)-maxFreq > k) {      //changes req = (j-i+1)-maxFrq
+                mp[s[i]]--;
+                i++;
+            }
+
+            maxLen = max(maxLen, j-i+1);
+            j++;
+        }
+
+        return maxLen;
+    }
+};
+/*
+Example 1:
+Input: s = "ABAB", k = 2
+Output: 4
+Explanation: Replace the two 'A's with two 'B's or vice versa.
+
+Example 2:
+Input: s = "AABABBA", k = 1
+Output: 4
+Explanation: Replace the one 'A' in the middle with 'B' and form "AABBBBA".
+The substring "BBBB" has the longest repeating letters, which is 4.
+There may exists other ways to achieve this answer too.
+*/
+
+
+//36. MAXIMUM POINTS YOU CAN OBTAIN FROM CARDS                            {T.C = O(N), S.C = O(1)}
+class Solution {
+public:
+    int maxScore(vector<int>& cardPoints, int k) {
+        int n = cardPoints.size();
+        int i = 0 , j = 0;
+        int currWinSum = 0;
+        int ans = 0;
+        int totalSum = 0;
+        for(int i = 0 ; i < n ; i++) totalSum += cardPoints[i];
+        if(k == n) return totalSum;                                 //all can be pop out
+            
+        while(j < n){
+            currWinSum += cardPoints[j];
+
+            if((j-i+1) >= n-k){                       //diff(ACTUAL WINDOW = TOTAL WINDOW-CURRWIN(MIN SUBARRAY)) should be min(ans => max)
+                ans = max(ans, totalSum-currWinSum);  
+
+                currWinSum -= cardPoints[i];                       //slide window
+                i++;
+            }
+            j++;
+        }
+
+        return ans;
+    }
+};
+/*
+Example 1:
+Input: cardPoints = [1,2,3,4,5,6,1], k = 3
+Output: 12
+Explanation: After the first step, your score will always be 1. However, choosing the rightmost card first will maximize your total score. The optimal strategy is to take the three cards on the right, giving a final score of 1 + 6 + 5 = 12.
+
+Example 2:
+Input: cardPoints = [2,2,2], k = 2
+Output: 4
+Explanation: Regardless of which two cards you take, your score will always be 4.
+
+Example 3:
+Input: cardPoints = [9,7,7,9,7,7,9], k = 7
+Output: 55
+Explanation: You have to take all the cards. Your score is the sum of points of all cards.
+*/
+
+
+//37. FIND THE POWER OF K-SIZE SUBARRAYS I                                  {T.C = O(N^2), S.C = O(N)}
+class Solution {
+public:
+    vector<int> resultsArray(vector<int>& nums, int k) {
+        int n = nums.size();
+        vector<int>ans;
+        for(int i = 0 ; i < n-k+1 ; i++){                  //last window (i to j(n-k))
+            bool isConsecutive = true;
+            int maxEle = INT_MIN;
+            for(int j = i ; j < i+k-1 ; j++){              //window size (i+k-1)
+                if(nums[j] >= nums[j+1] || nums[j]+1 != nums[j+1]){  //not sorted or consecutive
+                    isConsecutive = false;
+                    break;
+
+                }
+            }
+            if(isConsecutive) maxEle = nums[i+k-1];     //subarray's last(max of subarray)
+            else maxEle = -1;
+            ans.push_back(maxEle);
+        }
+        return ans;
+    }
+};
+/*
+Example 1:
+Input: nums = [1,2,3,4,3,2,5], k = 3
+Output: [3,4,-1,-1,-1]
+Explanation:
+There are 5 subarrays of nums of size 3:
+[1, 2, 3] with the maximum element 3.
+[2, 3, 4] with the maximum element 4.
+[3, 4, 3] whose elements are not consecutive.
+[4, 3, 2] whose elements are not sorted.
+[3, 2, 5] whose elements are not consecutive.
+
+Example 2:
+Input: nums = [2,2,2,2,2], k = 4
+Output: [-1,-1]
+Example 3:
+Input: nums = [3,2,3,2,3,2], k = 2
+Output: [-1,3,-1,3,-1]
+*/
+
+
+//38. MAXIMUM NUMBER OF OCCURRENCES OF A SUBSTRING                         {T.C = O(N), S.C = O(N)}
+class Solution {
+public:
+    int maxFreq(string s, int maxLetters, int minSize, int maxSize) {
+        int n = s.length();
+        unordered_map<char,int>chCountMp;
+        unordered_map<string ,int>subStrMp;
+        int distinctCount = 0;
+        int maxOcc = 0;
+        int i = 0, j = 0;
+        while(j < n){
+            chCountMp[s[j]]++;
+            if(chCountMp[s[j]] == 1) distinctCount++;      //new ele      //or simply use mp.size() no distcount
+
+            if(j-i+1 == minSize){                          //substring len (min-max){min give max freq}
+                if(distinctCount <= maxLetters){
+                    string sub = s.substr(i, minSize);     //minsize == k (i to k)
+                    subStrMp[sub]++;
+                    maxOcc = max(maxOcc, subStrMp[sub]);     //max of count of substring
+                }
+
+                chCountMp[s[i]]--;
+                if(chCountMp[s[i]] == 0) distinctCount--;
+                i++;
+            }
+            j++;
+        }
+        return maxOcc;
+    }
+};
+/*
+Example 1:
+Input: s = "aababcaab", maxLetters = 2, minSize = 3, maxSize = 4
+Output: 2
+Explanation: Substring "aab" has 2 occurrences in the original string.
+It satisfies the conditions, 2 unique letters and size 3 (between minSize and maxSize).
+
+Example 2:
+Input: s = "aaaa", maxLetters = 1, minSize = 3, maxSize = 3
+Output: 2
+Explanation: Substring "aaa" occur 2 times in the string. It can overlap.
+*/
+
+
+//39. SUBARRAY PRODUCT LESS THAN K                                          {T.C = O(N), S.C = O(1)}
+class Solution {
+public:
+    int numSubarrayProductLessThanK(vector<int>& nums, int k) {
+        int n = nums.size();
+        int count = 0;
+        int prod = 1;
+        
+        //base case
+        if(k <= 1) return 0;                          //prod > k so k<= 1 would 0
+
+        int i = 0, j = 0;
+        while(j < n){
+            prod *= nums[j];
+
+            while(prod >= k){
+                prod /= nums[i];
+                i++;
+            }
+            count += (j-i+1);
+            j++;
+        }
+        return count;
+    }
+};
+/*
+Example 1:
+Input: nums = [10,5,2,6], k = 100
+Output: 8
+Explanation: The 8 subarrays that have product less than 100 are:
+[10], [5], [2], [6], [10, 5], [5, 2], [2, 6], [5, 2, 6]
+Note that [10, 5, 2] is not included as the product of 100 is not strictly less than k.
+
+Example 2:
+Input: nums = [1,2,3], k = 0
+Output: 0
+*/
+
+
+//40. MINIMUM CONSECUTIVE CARDS TO PICK UP                            {T.C = O(N), S.C = O(N)}
+class Solution {
+public:
+    int minimumCardPickup(vector<int>& cards) {
+        int n = cards.size();
+        unordered_map<int,int>mp;
+        int minLen = INT_MAX;
+        int i = 0, j = 0;
+        while(j < n){
+            mp[cards[j]]++;
+            
+            while(mp[cards[j]] == 2){
+                minLen = min(minLen, j-i+1);
+
+                mp[cards[i]]--;
+                if(mp[cards[i]] == 0) mp.erase(cards[i]);
+                i++;
+            }
+            j++;
+        }
+        return minLen == INT_MAX ? -1 : minLen;
+    }
+};
+/*
+Example 1:
+Input: cards = [3,4,2,3,4,7]
+Output: 4
+Explanation: We can pick up the cards [3,4,2,3] which contain a matching pair of cards with value 3. Note that picking up the cards [4,2,3,4] is also optimal.
+
+Example 2:
+Input: cards = [1,0,5,3]
+Output: -1
+Explanation: There is no way to pick up a set of consecutive cards that contain a pair of matching cards.
+*/
+
+
+//41. LONGEST NICE SUBARRAY                                        {T.C = O(N), S.C = O(1)}
+class Solution {
+public:
+    int longestNiceSubarray(vector<int>& nums) {
+        int n = nums.size();
+        int maxLen = 1;                             //and of 1 element is 1
+        int andVal = 0;
+        int i = 0, j = 0;
+        while(j < n){
+            while((andVal & nums[j]) > 0){             //slide window
+                andVal ^= nums[i];
+                i++;
+            }
+            andVal |= nums[j];                       //| for adding element (after check add nums[j])
+            maxLen = max(maxLen, j-i+1);
+            j++;
+        }
+        return maxLen;
+    }
+};
+/*
+Example 1:
+Input: nums = [1,3,8,48,10]
+Output: 3
+Explanation: The longest nice subarray is [3,8,48]. This subarray satisfies the conditions:
+- 3 AND 8 = 0.
+- 3 AND 48 = 0.
+- 8 AND 48 = 0.
+It can be proven that no longer nice subarray can be obtained, so we return 3.
+
+Example 2:
+Input: nums = [3,1,5,11,13]
+Output: 1
+Explanation: The length of the longest nice subarray is 1. Any subarray of length 1 can be chosen.
+*/
+
+
+//42. COUNT THE NUMBER OF GOOD SUBARRAYS                                {T.C = O(N), S.C = O(N)}
+class Solution {
+public:
+    long long countGood(vector<int>& nums, int k) {
+        unordered_map<int, int> mp;
+        long long count = 0;
+        long long totalCount = 0;
+        int n = nums.size();
+        int i = 0, j = 0;
+
+        while (j < n) {
+            count += mp[nums[j]];                       //add currCount first
+            mp[nums[j]]++;                              //not above
+            
+            while (count >= k && i <= j) {
+                totalCount += (n - j);
+
+                mp[nums[i]]--;               //shrink window
+                count -= mp[nums[i]];
+                i++;
+            }
+            j++;
+        }
+
+        return totalCount;
+    }
+};
+/*
+Example 1:
+Input: nums = [1,1,1,1,1], k = 10
+Output: 1
+Explanation: The only good subarray is the array nums itself.
+
+Example 2:
+Input: nums = [3,1,4,3,2,2,4], k = 2
+Output: 4
+Explanation: There are 4 different good subarrays:
+- [3,1,4,3,2,2] that has 2 pairs.
+- [3,1,4,3,2,2,4] that has 3 pairs.
+- [1,4,3,2,2,4] that has 2 pairs.
+- [4,3,2,2,4] that has 2 pairs.
+*/
+
+
+//43. FIND ALL ANAGRAMS IN A STRING
+//USING HASHMAP                                                              {T.C = O(N), S.C = O(N)}
+class Solution {
+public:
+    bool isAnagram(unordered_map<char, int>&mpP, unordered_map<char, int>&mpS){  //having same freq of a ch
+        for(char ch = 'a' ; ch <= 'z' ; ch++){
+            if(mpP[ch] != mpS[ch]) return false;
+        }
+        return true;
+    }
+    vector<int> findAnagrams(string s, string p) {
+        int n = s.length(), m = p.length();
+        unordered_map<char,int>mpP;
+        for(auto &it : p) mpP[it]++;
+        
+        unordered_map<char,int>mpS;
+        vector<int>ans;
+        int i = 0, j = 0;
+        while(j < n){
+            mpS[s[j]]++;
+
+            if(j-i+1 == m){
+                if(isAnagram(mpP, mpS)) ans.push_back(i);
+
+                mpS[s[i]]--;                       //slide window
+                i++;
+            }
+            j++;
+        }
+        return ans;
+    }
+};
+
+//USING FREQUENCE VECTOR                                              {T.C = O(N), S.C = O(1)}
+class Solution {
+public:
+    bool isAnagram(vector<int>&freqP, vector<int>&freqS){                //having same freq of a ch
+        for(int i = 0 ; i < 26 ; i++){
+            if(freqP[i] != freqS[i]) return false;
+        }
+        return true;
+    }
+    vector<int> findAnagrams(string s, string p) {
+        int n = s.length(), m = p.length();
+        vector<int>freqP(26, 0);
+        for(auto it : p) freqP[it-'a']++;
+
+        vector<int>freqS(26, 0);
+        vector<int>ans;
+        int i = 0, j = 0;
+        while(j < n){
+            freqS[s[j]-'a']++;
+
+            if(j-i+1 == m){
+                if(isAnagram(freqS, freqP)) ans.push_back(i);
+
+                freqS[s[i]-'a']--;
+                i++;
+            }
+            j++;
+        }
+        return ans;
+    }
+};
+/*
+Example 1:
+Input: s = "cbaebabacd", p = "abc"
+Output: [0,6]
+Explanation:
+The substring with start index = 0 is "cba", which is an anagram of "abc".
+The substring with start index = 6 is "bac", which is an anagram of "abc".
+
+Example 2:
+Input: s = "abab", p = "ab"
+Output: [0,1,2]
+Explanation:
+The substring with start index = 0 is "ab", which is an anagram of "ab".
+The substring with start index = 1 is "ba", which is an anagram of "ab".
+The substring with start index = 2 is "ab", which is an anagram of "ab".
+*/
+
+
+//44. MAXIMUM LENGTH OF REPEATED SUBARRAY                            
+//BRUTE FORCE                                                     {T.C = O(N^3), S.C = O(1)}
+class Solution {
+public:
+    //BRUTE FORCE                               {T.C = O(N^3), S.C = O(1)}
+    int findLength(vector<int>& nums1, vector<int>& nums2) {
+        int n = nums1.size(), m = nums2.size();
+        int maxLen = INT_MIN;
+        for(int i = 0 ; i < n ; i++){
+            for(int j = 0 ;j < m; j++){
+                int k = 0;
+                while(i + k < n && j + k < m && nums1[i+k] == nums2[j+k]) k++;
+                maxLen = max(maxLen, k);
+            }
+        }
+        return maxLen;
+    }
+};
+
+//USING DP (TABULATION)                                                         {T.C = O(N^2), S.C = O(N^2)}
+//(LONGEST COMMON SUBSTRING)   
+class Solution {
+public:
+    int findLength(vector<int>& nums1, vector<int>& nums2) {
+        int n = nums1.size(), m = nums2.size();
+        vector<vector<int>>dp(n+1, vector<int>(m+1, 0));
+        int maxLen = 0;
+        for(int i = 1 ; i <= n ; i++){                //first row, col = 0
+            for(int j = 1; j <= m ; j++){
+                if(nums1[i-1] == nums2[j-1]){
+                    dp[i][j] = 1 + dp[i-1][j-1];
+                    maxLen = max(maxLen, dp[i][j]);
+                }else{
+                    dp[i][j] = 0;       //subsequence = dp[i][j] = 0 + max(dp[i-1][j], dp[i][j-1]);
+                }
+            }
+        }
+        return maxLen;
+    }
+};
+
+//USING SLIDING WINDOW                                                   {T.C = O(N*M), S.C = O(1)}
+class Solution {
+public:
+    int findLength(vector<int>& nums1, vector<int>& nums2) {
+        int n = nums1.size(), m = nums2.size();
+        int maxLen = 0;
+        for(int i = -m+1 ; i < n ; i++){           //min len(both arr exclusion)
+            int len = 0;
+            for(int j = 0 ; j < m ; j++){
+                if(i+j < 0) continue;
+                else if(i+j >= n) break;            //both vec ends
+                else if(nums1[i+j] == nums2[j]){
+                    len++;
+                    maxLen = max(maxLen, len);
+                }else{
+                    len = 0;                       //reset if not match
+                }
+            }
+        }
+        return maxLen;
+    }
+};
+/*
+Example 1:
+Input: nums1 = [1,2,3,2,1], nums2 = [3,2,1,4,7]
+Output: 3
+Explanation: The repeated subarray with maximum length is [3,2,1].
+
+Example 2:
+Input: nums1 = [0,0,0,0,0], nums2 = [0,0,0,0,0]
+Output: 5
+Explanation: The repeated subarray with maximum length is [0,0,0,0,0].
+*/
+
+
+//45. REPEATED DNA SEQUENCE                    
+//not sliding window (simple HASHMAP)          {T.C = O(N), S.C = O(N)}
+class Solution {
+public:
+    vector<string> findRepeatedDnaSequences(string s) {
+        int n = s.length();
+        unordered_map<string,int>mp;
+        for(int i = 0 ; i < n ; i++){
+            mp[s.substr(i, 10)]++;
+        }
+
+        vector<string>ans;
+        for(auto it : mp){
+            if(it.second > 1){
+                ans.push_back(it.first);
+            }
+        }
+        return ans;
+    }
+};
+/*
+Example 1:
+Input: s = "AAAAACCCCCAAAAACCCCCCAAAAAGGGTTT"
+Output: ["AAAAACCCCC","CCCCCAAAAA"]
+
+Example 2:
+Input: s = "AAAAAAAAAAAAA"
+Output: ["AAAAAAAAAA"]
+*/
+
+
+//46. LONGEST SUBSTRING OF ALLL VOWELS IN ORDER
+//USING 2 POINTERS                                                              {T.C = O(N), S.C = O(1)}
+class Solution {
+public:
+    int longestBeautifulSubstring(string word) {
+        int n = word.length();
+        int maxLen = 0, count = 1;
+        int i = 0;
+        for(int j = 1 ; j < n ; j++){
+            if(word[j-1] < word[j]) count++;             //incr only when next > prev(not equal)
+            else if(word[j-1] > word[j]){
+                count = 1;
+                i = j;
+            }
+
+            if(count == 5) maxLen = max(maxLen, j-i+1);
+        }
+        return maxLen;
+    }
+};
+
+class Solution {
+//USING SLIDING WINDOW                                                         {T.C = O(N), S.C = O(1)}
+public:
+    int longestBeautifulSubstring(string word) {
+        int n = word.length();
+        int maxLen = 0, count = 1;
+        int i = 0, j = 1;
+        while(j < n){
+            if(word[j-1] < word[j]) count++;
+            else if(word[j-1] > word[j]){
+                count = 1;
+                i = j;
+            }
+
+            if(count == 5 && word[j] == 'u'){
+                maxLen = max(maxLen, j-i+1);
+            }
+            j++;
+        }
+        return maxLen;
+    }
+};
+/*
+Example 1:
+Input: word = "aeiaaioaaaaeiiiiouuuooaauuaeiu"
+Output: 13
+Explanation: The longest beautiful substring in word is "aaaaeiiiiouuu" of length 13.
+
+Example 2:
+Input: word = "aeeeiiiioooauuuaeiou"
+Output: 5
+Explanation: The longest beautiful substring in word is "aeiou" of length 5.
+
+Example 3:
+Input: word = "a"
+Output: 0
+Explanation: There is no beautiful substring, so return 0.
+*/
+
+
+//47. MINIMUM SIZE SUBARRAY SUM                                          {T.C = O(N), S.C = O(1)}
+class Solution {
+public:
+    int minSubArrayLen(int target, vector<int>& nums) {
+        int n = nums.size();
+        int minLen = INT_MAX;
+        int sum = 0;
+        int i = 0, j = 0;
+        while(j < n){
+            sum += nums[j];
+
+            while(sum >= target){
+                minLen = min(minLen, j-i+1);
+
+                sum -= nums[i];                      //slide window
+                i++;
+            }
+            j++;
+        }
+        return minLen == INT_MAX ? 0 : minLen;
+    }
+};
+/*
+Example 1:
+Input: target = 7, nums = [2,3,1,2,4,3]
+Output: 2
+Explanation: The subarray [4,3] has the minimal length under the problem constraint.
+
+Example 2:
+Input: target = 4, nums = [1,4,4]
+Output: 1
+
+Example 3:
+Input: target = 11, nums = [1,1,1,1,1,1,1,1]
+Output: 0
+*/
+
+
+//48. FIND K CLOSEST ELEMENTS
+//USING MAXHEAP                                                {T.C = O(N*LOGK{INSERTION(LOGK)}), S.C = O(K)}
+class Solution {
+public:
+    typedef pair<int,int>P;                              //abs Diff, element
+    vector<int> findClosestElements(vector<int>& arr, int k, int x) {
+        priority_queue<P>maxHeap;
+        for(int i = 0 ; i < arr.size(); i++){
+            maxHeap.push({abs(arr[i]-x), arr[i]});
+            if(maxHeap.size() > k) maxHeap.pop();
+        }
+        vector<int>ans;
+        while(!maxHeap.empty()){
+            ans.push_back(maxHeap.top().second);
+            maxHeap.pop();
+        }
+        sort(ans.begin(), ans.end());
+        return ans;
+    }
+};
+
+//TWO POINTERS + SLIDING WINDOW                                                 {T.C = O(N), S.C = O(N)}
+class Solution {
+public:
+    vector<int> findClosestElements(vector<int>& arr, int k, int x) {
+        int n = arr.size();
+        int i = 0, j = n-1;
+
+        while(j-i+1 > k){
+            if(abs(arr[i]-x) > abs(arr[j]-x)) i++;
+            else j--;
+        }
+        return vector<int>(arr.begin()+i, arr.begin()+j+1);      //(i to j(for incluseion + 1))
+    }
+};
+/*
+Example 1:
+Input: arr = [1,2,3,4,5], k = 4, x = 3
+Output: [1,2,3,4]
+
+Example 2:
+Input: arr = [1,2,3,4,5], k = 4, x = -1
+Output: [1,2,3,4]
+*/
+
+
+//49. LONGEST TURBULENT SUBARRAY
+//USING KADANE'S ALGO                                                        {T.C = O(N), S.C = O(1)}
+class Solution {
+public:
+    int maxTurbulenceSize(vector<int>& arr) {
+        int n = arr.size();
+        //base case
+        if(n == 1) return 1;
+
+        int maxLen = 0;
+        
+        int sign = 1;
+        int len = 0;
+        for(int i = 0 ; i < n-1; i++){
+            if(arr[i] < arr[i+1]){
+                if(sign == 1) len++;
+                else len = 0;
+            }else if(arr[i] > arr[i+1]){
+                if(sign == -1) len++;
+                else len = 0;
+            }else{
+                len = 0;
+            }   
+            sign *= -1;
+            maxLen = max(maxLen, len);
+        }
+
+        sign = -1;
+        len = 0;
+        for(int i = 0; i < n-1 ; i++){
+            if(arr[i] < arr[i+1]){
+                if(sign == 1) len++;
+                else len = 0;
+            }else if(arr[i] > arr[i+1]){
+                if(sign == -1) len++;
+                else len = 0;
+            }else{
+                len = 0;
+            }
+            sign *= -1;
+            maxLen = max(maxLen, len);
+        }
+        return maxLen+1;                        //include curr ele
+    }
+};
+
+//USING  GREEDY WAY                                                   {T.C = O(N), S.C = O(1)}
+class Solution {
+public:
+    int case1(vector<int>&arr){
+        int n = arr.size();
+        int len = 1, maxLen = 1;
+        for(int i = 0 ; i < n-1; i++){
+            if(i % 2 == 0){                   //even
+                if(arr[i] < arr[i+1]) len++;
+                else len = 1;
+            }else{
+                if(arr[i] > arr[i+1]) len++;
+                else len = 1;
+            }
+            maxLen = max(maxLen, len);
+        }
+        return maxLen;
+    }
+    int case2(vector<int>&arr){
+        int n = arr.size();
+        int len = 1, maxLen = 1;
+        for(int i = 0 ; i < n-1; i++){
+            if(i % 2 == 1){                      //odd
+                if(arr[i] < arr[i+1]) len++;
+                else len = 1;
+            }else{
+                if(arr[i] > arr[i+1]) len++;
+                else len = 1;
+            }
+            maxLen = max(maxLen, len);
+        }
+        return maxLen;
+    }
+    int maxTurbulenceSize(vector<int>& arr) {
+        return max(case1(arr), case2(arr));
+    }
+};
+/*
+Example 1:
+Input: arr = [9,4,2,10,7,8,8,1,9]
+Output: 5
+Explanation: arr[1] > arr[2] < arr[3] > arr[4] < arr[5]
+
+Example 2:
+Input: arr = [4,8,12,16]
+Output: 2
+
+Example 3:
+Input: arr = [100]
+Output: 1
+*/
+
+
+//50. K RADIUS SUBARRAY AVERAGES                                    {T.C = O(N), S.C = O(N)}
+class Solution {
+public:
+    vector<int> getAverages(vector<int>& nums, int k) {
+        int n = nums.size();
+        vector<int>avgVec(n, -1);
+        //base case
+        if(n < 2*k+1) return avgVec; 
+
+        long long sum = 0;
+        for(int i = 0; i < 2*k+1 ; i++) sum += nums[i];
+
+
+        int j = k;                                  //center valid point of window
+        while(j < n-k){
+            avgVec[j] = sum / (2*k+1);
+
+            if(j+k+1 < n){                           //slide window
+                sum += nums[j+k+1];
+                sum -= nums[j-k];               
+            }
+            j++;
+        }
+        return avgVec;
+        
+    }
+};
+/*
+Example 1:
+Input: nums = [7,4,3,9,1,8,5,2,6], k = 3
+Output: [-1,-1,-1,5,4,4,-1,-1,-1]
+Explanation:
+- avg[0], avg[1], and avg[2] are -1 because there are less than k elements before each index.
+- The sum of the subarray centered at index 3 with radius 3 is: 7 + 4 + 3 + 9 + 1 + 8 + 5 = 37.
+  Using integer division, avg[3] = 37 / 7 = 5.
+- For the subarray centered at index 4, avg[4] = (4 + 3 + 9 + 1 + 8 + 5 + 2) / 7 = 4.
+- For the subarray centered at index 5, avg[5] = (3 + 9 + 1 + 8 + 5 + 2 + 6) / 7 = 4.
+- avg[6], avg[7], and avg[8] are -1 because there are less than k elements after each index.
+
+Example 2:
+Input: nums = [100000], k = 0
+Output: [100000]
+Explanation:
+- The sum of the subarray centered at index 0 with radius 0 is: 100000.
+  avg[0] = 100000 / 1 = 100000.
+
+Example 3:
+Input: nums = [8], k = 100000
+Output: [-1]
+Explanation: 
+- avg[0] is -1 because there are less than k elements before and after index 0.
+*/
+
+
+//51. LONGEST SUBSTRING WITH AT LEAST K REPEATING CHARACTERS              {T.C = O(26*N), S.C = O(N)}
+//SIMILAR TO (05. MAXIMUM LENGTH SUBSTRING WITH TWO OCCURRENCES )
+class Solution {
+public:
+    int longestSubstring(string s, int k) {
+        int n = s.length();
+        int maxLen = 0;
+        
+        // Try to find the maxLen for substrings with exactly `uniqueTarget` unique characters
+        for (int uniqueTarget = 1; uniqueTarget <= 26; uniqueTarget++) {
+            unordered_map<char, int> mp;
+            int i = 0, j = 0;
+            int uniqueChars = 0, countAtLeastK = 0;
+
+            while (j < n) {
+                if (mp[s[j]] == 0) uniqueChars++;
+                mp[s[j]]++;
+
+                if (mp[s[j]] == k) countAtLeastK++;
+
+                while (uniqueChars > uniqueTarget) {
+                    if (mp[s[i]] == k) countAtLeastK--;
+                    
+                    mp[s[i]]--;
+                    if (mp[s[i]] == 0) uniqueChars--;
+                    i++;
+                }
+
+                // If the window contains exactly `uniqueTarget` unique characters and all have at least `k` occurrences
+                if (uniqueChars == uniqueTarget && uniqueChars == countAtLeastK) {
+                    maxLen = max(maxLen, j - i + 1);
+                }
+
+                j++;
+            }
+        }
+        
+        return maxLen;
+    }
+};
+/*
+Example 1:
+Input: s = "aaabb", k = 3
+Output: 3
+Explanation: The longest substring is "aaa", as 'a' is repeated 3 times.
+
+Example 2:
+Input: s = "ababbc", k = 2
+Output: 5
+Explanation: The longest substring is "ababb", as 'a' is repeated 2 times and 'b' is repeated 3 times.
 */
