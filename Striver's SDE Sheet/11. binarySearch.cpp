@@ -309,7 +309,7 @@ Explanation: Combined sorted array is - 72, 86, 100, 112, 113, 119, 256, 265, 34
 */
 
 
-//ALLOCATE MINIMUM PAGES  (min(max))                                               {T.C = O(N*LOGN), S.C = O(1)}
+//67. ALLOCATE MINIMUM PAGES  (min(max))                                               {T.C = O(N*LOGN), S.C = O(1)}
 //BINARY SEARCH ON VALUE
 class Solution {
   public:
@@ -368,7 +368,7 @@ Explanation: Allocation can not be done.
 */
 
 
-//AGGRESSIVE COW      (max(min))                                                   {T.C = O(N*LOGN), S.C = O(1)}
+//68. AGGRESSIVE COW      (max(min))                                                   {T.C = O(N*LOGN), S.C = O(1)}
 //similar to allocation books problem
 class Solution {
 public:
