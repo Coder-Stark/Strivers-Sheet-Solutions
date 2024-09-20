@@ -519,3 +519,470 @@ Output: false
 Explanation: There are a total of 2 courses to take. 
 To take course 1 you should have finished course 0, and to take course 0 you should also have finished course 1. So it is impossible.
 */
+
+
+//10. COURSE SCHEDULE IV                                               {T.C = O(N^3), S.C = O(N^2)}
+class Solution {
+public:
+    vector<int>topoSort(vector<vector<int>>&edges, int n, vector<vector<bool>>&reachMatrix){
+        unordered_map<int,vector<int>>adj;
+        vector<int>inDegree(n, 0);
+        for(auto it : edges){
+            adj[it[0]].push_back(it[1]);
+            inDegree[it[1]]++;                        //0->1
+        }
+        queue<int>q;
+        for(int i = 0 ; i < n; i++){
+            if(inDegree[i] == 0) q.push(i);
+        }
+        vector<int>ans;
+        while(!q.empty()){
+            auto frontNode = q.front();
+            q.pop();
+            ans.push_back(frontNode);
+            for(auto it : adj[frontNode]){
+
+                reachMatrix[frontNode][it] = true;                   //directly connected
+                for(int i = 0 ; i < n ; i++){                        //indirect connection from currNode
+                    if(reachMatrix[i][frontNode] == true) reachMatrix[i][it] = true;
+                }
+
+                inDegree[it]--;
+                if(inDegree[it] == 0) q.push(it);
+            }
+        }
+        return ans;
+    }
+    vector<bool> checkIfPrerequisite(int numCourses, vector<vector<int>>& prerequisites, vector<vector<int>>& queries) {
+        int n = numCourses;
+        vector<vector<bool>>reachMatrix(n, vector<bool>(n, false));
+        vector<int>topo = topoSort(prerequisites, n, reachMatrix);
+
+        vector<bool>ans;
+        for(auto it : queries){
+            ans.push_back(reachMatrix[it[0]][it[1]]);
+        }
+
+        return ans;
+    }
+};
+/*
+Example 1:
+Input: numCourses = 2, prerequisites = [[1,0]], queries = [[0,1],[1,0]]
+Output: [false,true]
+Explanation: The pair [1, 0] indicates that you have to take course 1 before you can take course 0.
+Course 0 is not a prerequisite of course 1, but the opposite is true.
+
+Example 2:
+Input: numCourses = 2, prerequisites = [], queries = [[1,0],[0,1]]
+Output: [false,false]
+Explanation: There are no prerequisites, and each course is independent.
+
+Example 3:
+Input: numCourses = 3, prerequisites = [[1,2],[1,0],[2,0]], queries = [[1,0],[1,2]]
+Output: [true,true]
+*/
+
+
+//11. NODE WITH HIGHEST EDGE SCORE                                         {T.C = O(N), S.C = O(N)}
+class Solution {
+public:
+    int edgeScore(vector<int>& edges) {
+        int n = edges.size();
+        vector<long long>inDegree(n, 0);
+        for(int i = 0; i < n ; i++){
+            inDegree[edges[i]] += i;                       //not +1 (+ value of node)
+        }
+
+        int maxScoreNode = 0;
+        long long maxScore = 0;
+
+        for(int i = n-1 ; i >= 0 ; i--){                  //ensure smallest index is choosen at last
+            if(inDegree[i] >= maxScore){
+                maxScore = inDegree[i];
+                maxScoreNode = i;
+            }
+        }
+        return maxScoreNode;
+    }
+};
+/*
+Example 1:
+Input: edges = [1,0,0,0,0,7,7,5]
+Output: 7
+Explanation:
+- The nodes 1, 2, 3 and 4 have an edge pointing to node 0. The edge score of node 0 is 1 + 2 + 3 + 4 = 10.
+- The node 0 has an edge pointing to node 1. The edge score of node 1 is 0.
+- The node 7 has an edge pointing to node 5. The edge score of node 5 is 7.
+- The nodes 5 and 6 have an edge pointing to node 7. The edge score of node 7 is 5 + 6 = 11.
+Node 7 has the highest edge score so return 7.
+
+Example 2:
+Input: edges = [2,0,0,2]
+Output: 0
+Explanation:
+- The nodes 1 and 2 have an edge pointing to node 0. The edge score of node 0 is 1 + 2 = 3.
+- The nodes 0 and 3 have an edge pointing to node 2. The edge score of node 2 is 0 + 3 = 3.
+Nodes 0 and 2 both have an edge score of 3. Since node 0 has a smaller index, we return 0.
+*/
+
+
+//12. GET WATCHED VIDEOS BY YOUR FRIENDS                                 {T.C = O(V+E), S.C = O(V+E)}
+//BFS (LEVEL WISE)
+class Solution {
+public:
+    vector<string> watchedVideosByFriends(vector<vector<string>>& watchedVideos, vector<vector<int>>& friends, int id, int level) {
+        int n = watchedVideos.size();
+        unordered_map<int, vector<int>>adj;
+        for(int i = 0 ; i < n ; i++){
+            for(auto it : friends[i]){                //1st level (me - friend(nbr))
+                adj[i].push_back(it);
+            }
+        }
+        queue<pair<int,int>>q;                      //id, level
+        q.push({id, 0});
+        vector<bool>vis(n, 0);
+        vis[id] = true;
+        unordered_map<string,int>mp;                          //string, freq
+        while(!q.empty()){
+            auto frontNode = q.front();
+            q.pop();
+            int id = frontNode.first;
+            int lvl = frontNode.second;
+            if(lvl == level){
+                for(auto it : watchedVideos[id]){   //insert id's strings
+                    mp[it]++;
+                }
+            }else if(lvl < level){
+                for(auto it : adj[id]){
+                    if(!vis[it]){
+                        q.push({it, lvl+1});
+                        vis[it] = true;
+                    }
+                }
+            }
+        }
+        vector<string>ans;
+        for(auto it : mp) ans.push_back(it.first);
+
+        auto lambda = [&](auto &a, auto &b){
+            if(mp[a] != mp[b]) return mp[a] < mp[b];
+            return a < b;
+        };
+        sort(ans.begin(), ans.end(), lambda);
+
+        return ans;
+    }
+};
+/*
+Example 1:
+Input: watchedVideos = [["A","B"],["C"],["B","C"],["D"]], friends = [[1,2],[0,3],[0,3],[1,2]], id = 0, level = 1
+Output: ["B","C"] 
+Explanation: 
+You have id = 0 (green color in the figure) and your friends are (yellow color in the figure):
+Person with id = 1 -> watchedVideos = ["C"] 
+Person with id = 2 -> watchedVideos = ["B","C"] 
+The frequencies of watchedVideos by your friends are: 
+B -> 1 
+C -> 2
+
+Example 2:
+Input: watchedVideos = [["A","B"],["C"],["B","C"],["D"]], friends = [[1,2],[0,3],[0,3],[1,2]], id = 0, level = 2
+Output: ["D"]
+Explanation: 
+You have id = 0 (green color in the figure) and the only friend of your friends is the person with id = 3 (yellow color in the figure).
+*/
+
+
+//13. COUNT THE NUMBER OF CONSISTENT STRINGS                                {T.C = O(N*M), S.C = O(N)}
+class Solution {
+public:
+    int countConsistentStrings(string allowed, vector<string>& words) {
+        set<char>st(allowed.begin(), allowed.end());
+        int n = words.size();
+        int count = 0;
+        for(auto it : words){                     //traverse all strings of words
+            bool isConsistent = true;
+            for(char ch : it){                    //traverse each strings via character match
+                if(!st.count(ch)){
+                    isConsistent = false;
+                    break;
+                }
+            }
+            if(isConsistent == true) count++;
+        }
+        return count;
+    }
+};
+/*
+Example 1:
+Input: allowed = "ab", words = ["ad","bd","aaab","baa","badab"]
+Output: 2
+Explanation: Strings "aaab" and "baa" are consistent since they only contain characters 'a' and 'b'.
+
+Example 2:
+Input: allowed = "abc", words = ["a","b","c","ab","ac","bc","abc"]
+Output: 7
+Explanation: All strings are consistent.
+
+Example 3:
+Input: allowed = "cad", words = ["cc","acd","b","ba","bac","bad","ac","d"]
+Output: 4
+Explanation: Strings "cc", "acd", "ac", and "d" are consistent.
+*/
+
+
+//14. SHORTEST PATH WITH ALTERNATING COLORS                                   {T.C = O(V+E), S.C = (V)}
+//BFS (SIMILAR TO DIJKSTRA)
+class Solution {
+public:
+    vector<int> shortestAlternatingPaths(int n, vector<vector<int>>& redEdges, vector<vector<int>>& blueEdges) {
+        unordered_map<int, vector<pair<int,int>>>adj;
+        for(auto it : redEdges) adj[it[0]].push_back({it[1], 0});  //0 = red  //u->{v, clr(0[red], 1[blue])}
+        for(auto it : blueEdges) adj[it[0]].push_back({it[1], 1}); //0 = blue
+
+        vector<vector<int>>minDis(n+1, {INT_MAX, INT_MAX});
+        queue<pair<int,int>>q;           //node, clr
+        q.push({0, 0});                  //src distance always 0
+        q.push({0, 1});                  //same above(no matters clr)
+        minDis[0] = {0, 0};              //node, clr
+        int count = 1;                   //curr dist from src node
+        //bfs
+        while(!q.empty()){
+            int sz = q.size();
+            while(sz--){
+                auto frontNode = q.front();
+                q.pop();
+                int node = frontNode.first;
+                int clr  = frontNode.second;
+                int newClr = clr ^ 1;  //change clr 1 to 0 or 0 to 1
+                for(auto it : adj[node]){
+                    if(it.second == newClr){         //alternate sequence
+                        if(count < minDis[it.first][newClr]){
+                            minDis[it.first][newClr] = count;
+                            q.push({it.first, newClr});
+                        }
+                    }
+                }
+
+            }
+            count++;
+        }
+
+        vector<int>ans(n);
+        for(int i = 0 ; i < n; i++){
+            int mini = min(minDis[i][0], minDis[i][1]);
+            ans[i] = (mini == INT_MAX ? -1 : mini); 
+        }
+        return ans;
+    }
+};
+/*
+Example 1:
+Input: n = 3, redEdges = [[0,1],[1,2]], blueEdges = []
+Output: [0,1,-1]
+
+Example 2:
+Input: n = 3, redEdges = [[0,1]], blueEdges = [[2,1]]
+Output: [0,1,-1]
+*/
+
+
+//15. UNCOMMON WORDS FROM TWO SENTENCES                              
+//USING TWO POINTERS                                               //{T.C = O(N+M), S.C = O(N)}
+class Solution {
+public:
+    vector<string> uncommonFromSentences(string s1, string s2) {
+        int n = s1.length(), m = s2.length();
+        unordered_map<string, int>mp;
+        int i = 0;
+        while(i < n){
+            int j = i;
+            while(j < n && s1[j] != ' ') j++;
+            string word = s1.substr(i, j-i);
+            mp[word]++;
+            i = j+1;                  //move to next word
+        }
+
+        i = 0;                        //reset for next string
+        while(i < m){
+            int j = i;
+            while(j < m && s2[j] != ' ') j++;
+            string word = s2.substr(i, j-i);
+            mp[word]++;
+            i = j+1;
+        }
+        vector<string>ans;
+        for(auto it : mp){
+            if(it.second == 1) ans.push_back(it.first);
+        }
+        return ans;
+    }
+};
+
+//USING STL (STRINGSTREAM)                                         {T.C = O(N+M), S.C = O(N)}
+class Solution {
+public:
+    vector<string> uncommonFromSentences(string s1, string s2) {
+        unordered_map<string, int>mp;
+        stringstream ss1(s1), ss2(s2);
+        string word = "";
+        while(ss1 >> word) mp[word]++;
+        while(ss2 >> word) mp[word]++;
+
+        vector<string>ans;
+        for(auto it : mp){
+            if(it.second == 1) ans.push_back(it.first);
+        }
+        return ans;
+    }
+};
+/*
+Example 1:
+Input: s1 = "this apple is sweet", s2 = "this apple is sour"
+Output: ["sweet","sour"]
+Explanation:
+The word "sweet" appears only in s1, while the word "sour" appears only in s2.
+
+Example 2:
+Input: s1 = "apple apple", s2 = "banana"
+Output: ["banana"]
+*/
+
+
+//16. LARGEST NUMBER FORMED FROM AN ARRAY                       {T.C = O(N*LOGN), S.C = O(N)}
+class Solution{
+public:
+	string printLargest(int n, vector<string> &arr) {
+	    
+	    auto lambda = [&](auto &a, auto &b){
+	        if(a+b > b+a) return true;           //3+30 = 330 > 30+3 = 303
+	        return false;
+	    };
+	    sort(arr.begin(), arr.end(), lambda);
+	    
+	    string ans = "";
+	    for(auto it : arr) ans += it;
+	    return ans;
+	}
+};
+
+//LARGEST NUMBER                                                {T.C = O(N*LOGN), S.C = O(N)}
+//SAME AS ABOVE JUST FIRST CONVERT INTEGER VECTOR INTO STRING VECTOR (HANDLE EXTRA CASE)
+class Solution {
+public:
+    string largestNumber(vector<int>& nums) {
+        vector<string>arr;             //convert int vector into string vector
+        for(auto it : nums) arr.push_back(to_string(it));
+
+        auto lambda = [&](auto &a, auto &b){
+            if(a + b > b + a) return true;          //3+30 = 330 > 30+3 = 303
+            return false;
+        };
+        sort(arr.begin(), arr.end(), lambda);
+
+        string ans = "";
+        for(auto it : arr)  ans += it;
+
+        bool all0 = true;             //handle "00" output "0" only
+        for(auto &it : ans){
+            if(it != '0'){
+                all0 = false;
+                break;
+            }
+        }
+
+        return all0 == true ? "0" : ans;
+    }
+};
+/*
+Input: n = 5, arr[] =  {"3", "30", "34", "5", "9"}
+Output: "9534330"
+Explanation: Given numbers are  {"3", "30", "34", "5", "9"}, the arrangement "9534330" gives the largest value.
+
+Input: n = 4, arr[] =  {"54", "546", "548", "60"}
+Output: "6054854654"
+Explanation: Given numbers are {"54", "546", "548", "60"}, the arrangement "6054854654" gives the largest value.
+*/
+
+
+//17. NEXT PERMUTATION         
+//using STL                                                                             {T.C = O(N), S.C = O(1)}
+class Solution{
+public:
+    vector<int> nextPermutation(int N, vector<int> arr){
+        next_permutation(arr.begin(), arr.end());
+        return arr;
+    }
+};
+
+
+//18. CONVERT 1D ARRAY INTO 2D MATRIX                                  {T.C = O(N), S.C = O(N)}
+class Solution {
+public:
+    vector<vector<int>> construct2DArray(vector<int>& original, int m, int n) {
+        //base case
+        if(original.size() != m*n) return {};
+
+        vector<vector<int>>matrix(m, vector<int>(n));
+        for(int i = 0 ; i < original.size() ; i++){
+            int row = i / n;                              //row = i / col(total)
+            int col = i % n;                              //col = i % col(total)  
+
+            matrix[row][col] = original[i]; 
+        }
+        return matrix;
+    }
+};
+/*
+Example 1:
+Input: original = [1,2,3,4], m = 2, n = 2
+Output: [[1,2],[3,4]]
+Explanation: The constructed 2D array should contain 2 rows and 2 columns.
+The first group of n=2 elements in original, [1,2], becomes the first row in the constructed 2D array.
+The second group of n=2 elements in original, [3,4], becomes the second row in the constructed 2D array.
+
+Example 2:
+Input: original = [1,2,3], m = 1, n = 3
+Output: [[1,2,3]]
+Explanation: The constructed 2D array should contain 1 row and 3 columns.
+Put all three elements in original into the first row of the constructed 2D array.
+
+Example 3:
+Input: original = [1,2], m = 1, n = 1
+Output: []
+Explanation: There are 2 elements in original.
+It is impossible to fit 2 elements in a 1x1 2D array, so return an empty 2D array.
+*/
+
+
+//ROTATE IMAGE 90 DEGREE                                              {T.C = O(N^2), S.C = O(1)}
+class Solution {
+public:
+    void rotate(vector<vector<int>>& matrix) {
+        int n = matrix.size();             //n = m
+        for(int i = 0 ; i < n; i++){                  //transpose of matrix
+            for(int j = i ; j < n ; j++){             //START WITH I NOT 0
+                swap(matrix[i][j], matrix[j][i]);
+            }
+        }
+
+        //reverse each row
+        for(int i = 0 ; i < n; i++){
+            int l = 0, r = n-1;
+            while(l <= r){
+                swap(matrix[i][l], matrix[i][r]);
+                l++, r--;
+            }
+        }
+    }
+};
+/*
+Example 1:
+Input: matrix = [[1,2,3],[4,5,6],[7,8,9]]
+Output: [[7,4,1],[8,5,2],[9,6,3]]
+
+Example 2:
+Input: matrix = [[5,1,9,11],[2,4,8,10],[13,3,6,7],[15,14,12,16]]
+Output: [[15,13,2,5],[14,3,4,1],[12,6,8,9],[16,7,10,11]]
+*/
