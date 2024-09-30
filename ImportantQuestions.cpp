@@ -956,7 +956,7 @@ It is impossible to fit 2 elements in a 1x1 2D array, so return an empty 2D arra
 */
 
 
-//ROTATE IMAGE 90 DEGREE                                              {T.C = O(N^2), S.C = O(1)}
+//19. ROTATE IMAGE 90 DEGREE                                              {T.C = O(N^2), S.C = O(1)}
 class Solution {
 public:
     void rotate(vector<vector<int>>& matrix) {
@@ -985,4 +985,89 @@ Output: [[7,4,1],[8,5,2],[9,6,3]]
 Example 2:
 Input: matrix = [[5,1,9,11],[2,4,8,10],[13,3,6,7],[15,14,12,16]]
 Output: [[15,13,2,5],[14,3,4,1],[12,6,8,9],[16,7,10,11]]
+*/
+
+
+//20. MY CALENDER I                                                  {T.C = O(K), S.C = O(K)}
+//INTERVALS
+class MyCalendar {
+public:
+    vector<pair<int,int>>interval;
+    MyCalendar() {}
+    
+    //overlap = a < e && s < b
+    bool book(int start, int end) {       //{T.C = O(K), S.C = O(K) K = INTERVALS}
+        for(auto it : interval){
+            int intvlStart = it.first;
+            int intvlEnd   = it.second;
+            if(intvlStart < end && start < intvlEnd) return false;    //overlap
+        }
+        interval.push_back({start, end});
+        return true;
+    }
+};
+/*
+Example 1:
+
+Input
+["MyCalendar", "book", "book", "book"]
+[[], [10, 20], [15, 25], [20, 30]]
+Output
+[null, true, false, true]
+Explanation
+MyCalendar myCalendar = new MyCalendar();
+myCalendar.book(10, 20); // return True
+myCalendar.book(15, 25); // return False, It can not be booked because time 15 is already booked by another event.
+myCalendar.book(20, 30); // return True, The event can be booked, as the first event takes every time less than 20, but not including 20.
+*/
+
+
+
+//21. COMPARE VERSIONS                                                {T.C = O(MAX(N, M)), S.C = O(N+M)}
+class Solution {
+public:
+    vector<string>getTokens(string &str){
+        stringstream ss(str);                      //convert string to streamstring(token's string)
+        vector<string>ans;
+        string token = "";
+        while(getline(ss, token, '.')){             //stringstream, temp string , delimeter(divider)
+            ans.push_back(token);
+        }
+        return ans;
+    }
+    int compareVersion(string version1, string version2) {
+        vector<string>v1 = getTokens(version1);
+        vector<string>v2 = getTokens(version2);
+
+        int n = v1.size(), m = v2.size();
+        int i = 0;
+        while(i < n || i < m){
+            int a = i < n ? stoi(v1[i]) : 0;
+            int b = i < m ? stoi(v2[i]) : 0;
+
+            if(a < b) return -1;
+            else if(a > b) return 1;
+            i++;
+        }
+        return 0;
+    }
+};
+/*
+Example 1:
+Input: version1 = "1.2", version2 = "1.10"
+Output: -1
+Explanation:
+version1's second revision is "2" and version2's second revision is "10": 2 < 10, so version1 < version2.
+
+Example 2:
+Input: version1 = "1.01", version2 = "1.001"
+Output: 0
+Explanation:
+Ignoring leading zeroes, both "01" and "001" represent the same integer "1".
+
+Example 3:
+Input: version1 = "1.0", version2 = "1.0.0.0"
+Output: 0
+Explanation:
+version1 has less revisions, which means every missing revision are treated as "0".
 */
