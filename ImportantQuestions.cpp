@@ -1071,3 +1071,56 @@ Output: 0
 Explanation:
 version1 has less revisions, which means every missing revision are treated as "0".
 */
+
+
+//22. CHECK IF ARRAY PAIRS ARE DIVISIBLE BY K                         {T.C = O(N), S.C = O(N)}
+class Solution {
+public:
+    /*
+    1 % 5 = 1
+    9 % 5 = 4
+    total = 5 (k)
+    (1+9) % 5 (k)
+    */
+    bool canArrange(vector<int>& arr, int k) {
+        unordered_map<int, int> mp; // remainderCount: {remainder, count}
+
+        // Calculate remainders and count frequencies
+        for (int num : arr) {
+            int remainder = ((num % k) + k) % k;  // Ensure positive remainder
+            mp[remainder]++;
+        }
+
+        // Check for valid pairs (simple 2 sum problem)
+        for (auto &it : mp) {
+            int rem = it.first;
+            int count = it.second;
+
+            if (rem == 0) {
+                // Remainder 0 must have an even count to be paired
+                if (count % 2 != 0) return false;
+            } else {
+                int complement = k - rem;
+                if (mp[rem] != mp[complement]) return false;
+            }
+        }
+
+        return true;
+    }
+};
+/*
+Example 1:
+Input: arr = [1,2,3,4,5,10,6,7,8,9], k = 5
+Output: true
+Explanation: Pairs are (1,9),(2,8),(3,7),(4,6) and (5,10).
+
+Example 2:
+Input: arr = [1,2,3,4,5,6], k = 7
+Output: true
+Explanation: Pairs are (1,6),(2,5) and(3,4).
+
+Example 3:
+Input: arr = [1,2,3,4,5,6], k = 10
+Output: false
+Explanation: You can try all possible pairs to see that there is no way to divide arr into 3 pairs each with sum divisible by 10.
+*/
