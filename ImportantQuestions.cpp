@@ -1124,3 +1124,86 @@ Input: arr = [1,2,3,4,5,6], k = 10
 Output: false
 Explanation: You can try all possible pairs to see that there is no way to divide arr into 3 pairs each with sum divisible by 10.
 */
+
+
+//23. PERMUTATION IN A STRING                                              
+//BRUTE FORCE                                                               {T.C = O(N! * N), S.C = O(N)}
+class Solution {
+public:
+    void totalPermutation(string &s, unordered_set<string>&st){
+        st.insert(s);
+        while(next_permutation(s.begin(), s.end())){
+            st.insert(s);
+        }
+    }
+    bool checkInclusion(string s1, string s2) {
+        sort(s1.begin(), s1.end());
+        unordered_set<string>st;
+        totalPermutation(s1, st);
+
+        for(auto it : st){
+            if(s2.find(it) != string :: npos) return true;
+        }
+        return false;
+    }
+};
+
+//BETTER                                                                     {T.C = O(M*NLOGN), S.C = O(N)}
+class Solution {
+public:
+    bool checkInclusion(string s1, string s2) {
+        int n = s1.length(), m = s2.length();
+        sort(s1.begin(), s1.end());
+
+        for(int i = 0 ; i <= m-n ; i++){
+            string subStr = s2.substr(i, n);        //substring of len s1 check all substr
+            sort(subStr.begin(), subStr.end());
+            if(subStr == s1) return true;
+        }
+        return false;
+    }
+};
+
+//BEST (USING SLIDING WINDOW)                                               {T.C = O(N), S.C = O(n)}
+class Solution {
+public:
+    bool checkInclusion(string s1, string s2) {
+        int n = s1.length(), m = s2.length();
+
+        if (n > m) return false;        // If s1 is larger than s2, no permutation can exist
+
+        vector<int> s1_freq(26, 0);
+        vector<int> s2_freq(26, 0);
+
+        // Fill frequency of characters in s1
+        for (int i = 0; i < n; i++) {
+            s1_freq[s1[i] - 'a']++;
+        }
+
+        int i = 0, j = 0;
+        while (j < m) {
+            s2_freq[s2[j] - 'a']++;
+
+            if (j-i+1 > n) {                     //n == k
+                s2_freq[s2[i] - 'a']--;
+                i++;
+            }
+
+            if (s1_freq == s2_freq) return true;
+            j++;
+        }
+
+        // No matching window found
+        return false;
+    }
+};
+/*
+Example 1:
+Input: s1 = "ab", s2 = "eidbaooo"
+Output: true
+Explanation: s2 contains one permutation of s1 ("ba").
+
+Example 2:
+Input: s1 = "ab", s2 = "eidboaoo"
+Output: false
+*/

@@ -392,7 +392,7 @@ Output: 10 30 60
 //110. BOTTOM VIEW OF BINARY TREE                                     {T.C = O(N), S.C = O(N)}
 class Solution{
     public:
-    vector<int> topView(Node *root){
+    vector<int> bottomView(Node *root){
         vector<int>ans;
         //base case
         if(!root) return ans;
