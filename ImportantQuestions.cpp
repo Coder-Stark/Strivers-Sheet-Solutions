@@ -1207,3 +1207,53 @@ Example 2:
 Input: s1 = "ab", s2 = "eidboaoo"
 Output: false
 */
+
+
+//24. SENTENCE SIMILARITY III                                                 {T.C = O(N+M), S.C = O(N+M)}
+class Solution {
+public:
+    bool areSentencesSimilar(string sentence1, string sentence2) {
+        if(sentence1.length() < sentence2.length()) swap(sentence1, sentence2);  //s1 always > s2
+
+        vector<string>vec1;
+        stringstream ss1(sentence1);
+        string token;
+        while(ss1 >> token) vec1.push_back(token);
+
+        vector<string>vec2;
+        stringstream ss2(sentence2);
+        while(ss2 >> token) vec2.push_back(token);
+
+        int n = vec1.size(), m = vec2.size();
+        int i = 0, j = n-1;
+        int k = 0, l = m-1;
+
+        while(i < n && k < m && vec1[i] == vec2[k]){
+            i++, k++;
+        }        
+        while(l >= k && vec1[j] == vec2[l]){
+            j--, l--;
+        }
+
+        return l < k;                                    //cross the pointers (s2 fully traversed)
+    }
+};
+/*
+Example 1:
+Input: sentence1 = "My name is Haley", sentence2 = "My Haley"
+Output: true
+Explanation:
+sentence2 can be turned to sentence1 by inserting "name is" between "My" and "Haley".
+
+Example 2:
+Input: sentence1 = "of", sentence2 = "A lot of words"
+Output: false
+Explanation:
+No single sentence can be inserted inside one of the sentences to make it equal to the other.
+
+Example 3:
+Input: sentence1 = "Eating right now", sentence2 = "Eating"
+Output: true
+Explanation:
+sentence2 can be turned to sentence1 by inserting "right now" at the end of the sentence.
+*/
