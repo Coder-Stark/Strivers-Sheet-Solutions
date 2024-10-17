@@ -1257,3 +1257,222 @@ Output: true
 Explanation:
 sentence2 can be turned to sentence1 by inserting "right now" at the end of the sentence.
 */
+
+
+//25. MAXIMAL SCORE AFTER APPLYING K OPERATIONS                                    {T.C = O(N*LOGN), S.C = O(N)}
+class Solution {
+public:
+    long long maxKelements(vector<int>& nums, int k) {
+        priority_queue<int>maxHeap;
+        for(auto it : nums){
+            maxHeap.push(it);
+        }
+
+        long long sum = 0;
+        while(k--){
+            int ele = maxHeap.top();
+            maxHeap.pop();
+            sum += ele;
+            maxHeap.push(ceil(ele / 3.0));
+        }
+        return sum;
+    }
+};
+/*
+Example 1:
+Input: nums = [10,10,10,10,10], k = 5
+Output: 50
+Explanation: Apply the operation to each array element exactly once. The final score is 10 + 10 + 10 + 10 + 10 = 50.
+
+Example 2:
+Input: nums = [1,10,3,3,3], k = 3
+Output: 17
+Explanation: You can do the following operations:
+Operation 1: Select i = 1, so nums becomes [1,4,3,3,3]. Your score increases by 10.
+Operation 2: Select i = 1, so nums becomes [1,2,3,3,3]. Your score increases by 4.
+Operation 3: Select i = 2, so nums becomes [1,1,1,3,3]. Your score increases by 3.
+The final score is 10 + 4 + 3 = 17.
+*/
+
+
+//26. PRODUCT OF ARRAY EXCEPT SELF                                             {T.C = O(N), S.C = O(N)}
+class Solution {
+public:
+    vector<int> productExceptSelf(vector<int>& nums) {
+        int n = nums.size();
+        vector<int>prefixMul(n, 1);
+        for(int i = 1; i < n; i++){
+            prefixMul[i] = prefixMul[i-1]*nums[i-1];        //exclude nums[i]
+        }
+
+        vector<int>suffixMul(n, 1);
+        for(int i = n-2 ; i >= 0 ; i--){
+            suffixMul[i] = suffixMul[i+1]*nums[i+1];       //exclude nums[i]
+        }
+
+        vector<int>ans(n);
+        for(int i = 0 ; i < n; i++){
+            ans[i] = prefixMul[i]*suffixMul[i];
+        }
+        return ans;
+    }
+};
+/*
+Example 1:
+Input: nums = [1,2,3,4]
+Output: [24,12,8,6]
+
+Example 2:
+Input: nums = [-1,1,0,-3,3]
+Output: [0,0,9,0,0]
+*/
+
+
+//27. MAXIMUM SUM SUBARRAY (KADANE'S ALGO)                                          {T.C = O(N), S.C = O(1)}
+class Solution {
+public:
+    int maxSubArray(vector<int>& nums) {
+        int n = nums.size();
+        int sum = 0, maxSum = INT_MIN;
+        for(int i = 0 ; i < n ;i++){
+            sum += nums[i];
+            maxSum = max(maxSum, sum);
+            if(sum < 0) sum = 0;                 //reset sum
+        }
+        return maxSum;
+    }
+};
+/*
+Example 1:
+Input: nums = [-2,1,-3,4,-1,2,1,-5,4]
+Output: 6
+Explanation: The subarray [4,-1,2,1] has the largest sum 6.
+
+Example 2:
+Input: nums = [1]
+Output: 1
+Explanation: The subarray [1] has the largest sum 1.
+
+Example 3:
+Input: nums = [5,4,-1,7,8]
+Output: 23
+Explanation: The subarray [5,4,-1,7,8] has the largest sum 23.
+*/
+
+
+//28. MAXIMUM PRODUCT SUBARRAY (KADANE'S ALGO)                                          {T.C = O(N), S.C = O(1)}
+//USING KADANE'S ALGO(LEFT TO RIGTH, RIGTH TO LEFT BOTH)
+class Solution {
+public:
+    int maxProduct(vector<int>& nums) {
+        int n = nums.size();
+        int prod = 1;
+        int maxProd = INT_MIN;
+        for(int i = 0 ; i < n ; i++){             //left to right
+            prod *= nums[i];
+            maxProd = max(maxProd, prod);
+            if(prod == 0) prod = 1;
+        }
+        prod = 1;                                 //reset
+        for(int i = n-1 ; i >= 0 ; i--){
+            prod *= nums[i];
+            maxProd = max(maxProd, prod);
+            if(prod == 0) prod = 1;
+        }
+
+        return maxProd;
+    }
+};
+/*
+Example 1:
+Input: nums = [2,3,-2,4]
+Output: 6
+Explanation: [2,3] has the largest product 6.
+
+Example 2:
+Input: nums = [-2,0,-1]
+Output: 0
+Explanation: The result cannot be 2, because [-2,-1] is not a subarray.
+*/
+
+
+//29. LONGEST HAPPY STRING                                                    {T.C = O(1), S.C = O(1)}
+class Solution {
+public:
+    //T.C = O(1), S.C = O(1)
+    typedef pair<int,char>P;                              //freq, char
+    string longestDiverseString(int a, int b, int c) {
+        priority_queue<P>maxHeap;
+        if(a > 0) maxHeap.push({a, 'a'});
+        if(b > 0) maxHeap.push({b, 'b'});
+        if(c > 0) maxHeap.push({c, 'c'});
+
+        string ans = "";
+        while(!maxHeap.empty()){
+            auto topNode = maxHeap.top();
+            maxHeap.pop();
+            int currFreq = topNode.first;
+            char currChar = topNode.second;
+
+            int n = ans.size();
+            if(n >= 2 && ans[n-1] == currChar && ans[n-2] == currChar){  //consecutive(3)
+                if(maxHeap.empty()) break;
+
+                auto nextTopNode = maxHeap.top();
+                maxHeap.pop();
+                int nextFreq = nextTopNode.first;
+                char nextChar = nextTopNode.second;
+
+                ans.push_back(nextChar);
+                nextFreq--;
+                if(nextFreq > 0) maxHeap.push({nextFreq, nextChar});
+            }else{                                             //not consecutive(3)
+                ans.push_back(currChar);
+                currFreq--;
+            }
+            if(currFreq > 0) maxHeap.push({currFreq, currChar});
+        }
+        return ans;
+    }
+};
+/*
+Example 1:
+Input: a = 1, b = 1, c = 7
+Output: "ccaccbcc"
+Explanation: "ccbccacc" would also be a correct answer.
+
+Example 2:
+Input: a = 7, b = 1, c = 0
+Output: "aabaa"
+Explanation: It is the only correct answer in this case.
+*/
+
+
+//30. CONTAINER WITH MOST WATER                                               {T.C = O(N), S.C = O(1)}
+class Solution {
+public:
+    int maxArea(vector<int>& height) {
+        int n = height.size();
+        int maxA = 0;
+        int i = 0, j = n-1;
+        while(i <= j){
+            int h = min(height[i], height[j]);         //min height(hold water else flow)
+            int w = j-i;
+            int a = h*w;
+            maxA  = max(maxA, a);
+            if(height[i] <= height[j]) i++;
+            else j--;
+        }
+        return maxA;
+    }
+};
+/*
+Example 1:
+Input: height = [1,8,6,2,5,4,8,3,7]
+Output: 49
+Explanation: The above vertical lines are represented by array [1,8,6,2,5,4,8,3,7]. In this case, the max area of water (blue section) the container can contain is 49.
+
+Example 2:
+Input: height = [1,1]
+Output: 1
+*/

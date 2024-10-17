@@ -722,7 +722,56 @@ Explanation: The array cannot be partitioned into equal sum subsets.
 */
 
 
-//360. PARTITION ARRAY INTO TWO ARRAYS TO MINIMIZE THE SUM DIFFERENCE
+//360. PARTITION ARRAY INTO TWO ARRAYS TO MINIMIZE THE SUM DIFFERENCE         {T.C = O(N*TOTALSUM), S.C = O(N*TOTALSUM)}         
+//FOR ONLY +VE VALUES
+int dp[1005][10005];                             //n, target(sum)
+bool solveMem(vector<int>&arr, int sum, int i){
+	int n = arr.size();
+	//base case
+	if(sum == 0) return true;
+	if(i >= n || sum < 0) return false;
+
+	if(dp[i][sum] != -1) return dp[i][sum];
+
+	bool incl = solveMem(arr, sum-arr[i], i+1);
+	bool excl = solveMem(arr, sum, i+1);
+
+	return dp[i][sum] = incl || excl;
+}
+int minSubsetSumDifference(vector<int>& arr, int n){
+	memset(dp, -1, sizeof(dp));
+	int totalSum = 0;
+	for(auto it : arr) totalSum += it;
+	int target = totalSum / 2;
+
+	int minSubset = INT_MAX;
+	for(int s1 = 0; s1 <= target; s1++){                               //only once so t.c = o(1)
+		if (solveMem(arr, s1, 0)) { // 0 = idx, s1 = target
+			int s2 = totalSum - s1;
+			minSubset = min(minSubset, abs(s2 - s1));
+		}
+    }
+	return minSubset;
+}
+/*
+Sample Input 1:
+4
+1 2 3 4
+Sample Output 1:
+0
+Explanation for sample input 1:
+We can partition the given array into {2,3} and {1,4}.
+This will give us the minimum possible absolute difference i.e. (5 - 5 = 0) in this case.
+
+Sample Input 2:
+3
+8 6 5
+Sample Output 2:
+3
+Explanation for sample input 2:
+We can partition the given array into {8} and {6,5}. 
+This will give us the minimum possible absolute difference i.e. (11 - 8 = 3).
+*/
 
 
 
@@ -1265,47 +1314,35 @@ Explanation: There is no such common subsequence, so the result is 0.
 
 //370. PRINT LONGEST COMMON SUBSEQUENCE                      {T.C = O(N*M), S.C = O(N*M)}
 //SAME AS FINDING LENGTH OF LCS, JUST ADD CONDITION TO PRINT LCS
-class Solution {
-public:
-    int dp[1001][1001];
-    int solveTab(string &a, string &b, int n, int m){
-        //base case 1st row and 1st col of dp table is 0
-        for(int i = 0 ; i < n+1 ; i++) dp[i][0] = 0;
-        for(int j = 0 ; j < m+1 ; j++) dp[0][j] = 0;
-
-        //fill rest of table
-        for(int i = 1; i < n+1 ; i++){
-            for(int j = 1 ; j < m+1 ; j++){
-                if(a[i-1] == b[j-1]){                        //index from 0 not 1
-                    dp[i][j] = 1 + dp[i-1][j-1];
-                } 
-                else{
-                    dp[i][j] = max(dp[i-1][j], dp[i][j-1]);
-                } 
-            }
-        }
-        //print LCS string
-        string lcs = "";
-        int i = n , j = m;
-        while(i > 0 && j > 0){
-            if(a[i-1] == b[j-1]){
-                lcs.push_back(a[i-1]);
-                i--, j--;
-            }else{
-                if(dp[i-1][j] > dp[i][j-1]) i--;
-                else j--;
-            }
-        }
-        reverse(lcs.begin(), lcs.end());                  //curr string is in reverse order
-        cout<<lcs<<" ";
-
-        return dp[n][m];                                   //last box of table(LCS length)
-    }
-    int longestCommonSubsequence(string text1, string text2) {
-        int n = text1.size(), m = text2.size();
-        return solveTab(text1, text2, n, m);             //n , m = size of both strings(dp table nXm)
-    }
-};
+int dp[1005][1005];
+void solveTab(string &s1, string &s2, int n, int m){
+	for(int i = 1 ; i < n+1 ; i++){
+		for(int j = 1; j < m+1; j++){
+			if(s1[i-1] == s2[j-1]) dp[i][j] = 1 + dp[i-1][j-1];
+			else dp[i][j] = 0 + max(dp[i-1][j], dp[i][j-1]);
+		}
+	}
+	// return dp[n][m];
+}
+string printLCS(string &s1, string &s2, int n, int m){
+	string lcs = "";
+	int i = n, j = m;
+	while(i > 0 && j > 0){
+		if(s1[i-1] == s2[j-1]){
+			lcs.push_back(s1[i-1]);          //any one push s2[j-1]
+			i--, j--;
+		}else{
+			if(dp[i-1][j] > dp[i][j-1]) i--;
+			else j--;
+		}
+	}
+	reverse(lcs.begin(), lcs.end());
+	return lcs;
+}
+string findLCS(int n, int m,string &s1, string &s2){
+	solveTab(s1, s2, n, m);
+	return printLCS(s1, s2, n, m);
+}
 /*
 Input
 text1 =
