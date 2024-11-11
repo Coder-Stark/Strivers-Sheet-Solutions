@@ -1476,3 +1476,433 @@ Example 2:
 Input: height = [1,1]
 Output: 1
 */
+
+
+//39. SPLIT A STRING INTO THE MAX NUMBER OF UNIQUE SUBSTRINS      {T.C = O(N*2^N), S.C = O(N)}
+//BACKTRACKING (KHANDANI TEMPLET - DO, EXPLORE, UNDO)
+class Solution {
+public:
+    void solve(string &s, unordered_set<string>&st, int currCount, int &maxCount, int i){
+        int n = s.length();
+        //base case
+        if(i >= n){
+            maxCount = max(maxCount, currCount);
+            return;
+        }
+
+        for(int j = i ; j < n ; j++){
+            string subStr = s.substr(i, j-i+1);
+            if(!st.count(subStr)){
+                st.insert(subStr);                            //DO
+                solve(s, st, currCount+1, maxCount, j+1);     //EXPLORE
+                st.erase(subStr);                             //UNDO
+            }
+        }
+    }
+    int maxUniqueSplit(string s) {
+        int n = s.length();
+        unordered_set<string>st;                            //find unique strings
+        int maxCount = 0;
+        int currCount = 0;
+        solve(s, st, currCount, maxCount, 0);                //0 = initial index
+
+        return maxCount;
+    }
+};
+/*
+Example 1:
+Input: s = "ababccc"
+Output: 5
+Explanation: One way to split maximally is ['a', 'b', 'ab', 'c', 'cc']. Splitting like ['a', 'b', 'a', 'b', 'c', 'cc'] is not valid as you have 'a' and 'b' multiple times.
+
+Example 2:
+Input: s = "aba"
+Output: 2
+Explanation: One way to split maximally is ['a', 'ba'].
+
+Example 3:
+Input: s = "aa"
+Output: 1
+Explanation: It is impossible to split the string any further.
+*/
+
+
+//40. COUSINS IN A BINARY TREE II                                  {T.C = O(N), S.C = O(N)}
+class Solution {
+public:
+    void lvlOrder(TreeNode* root, vector<int>&lvlSum){
+        queue<TreeNode*>q;
+        q.push(root);
+        while(!q.empty()){
+            int sz = q.size();
+            int sum = 0;
+            for(int i = 0; i < sz; i++){
+                auto frontNode = q.front();
+                q.pop();
+                sum += frontNode->val;
+                if(frontNode->left) q.push(frontNode->left);
+                if(frontNode->right)q.push(frontNode->right);
+            }
+            lvlSum.push_back(sum);
+        }
+    }
+    TreeNode* newlvlOrder(TreeNode* root, vector<int>& lvlSum) {
+        // base case
+        root->val = 0;  // root has no siblings or cousins
+        queue<TreeNode*> q;
+        q.push(root);
+
+        int level = 1;  // level 0 (root level) is already covered
+        while (!q.empty()) {
+            int sz = q.size();
+            for (int i = 0; i < sz; i++) {
+                auto frontNode = q.front();
+                q.pop();
+
+                // Initialize sibling sum for left and right children
+                int siblingLeftSum = (frontNode->left ? frontNode->left->val : 0);
+                int siblingRightSum = (frontNode->right ? frontNode->right->val : 0);
+                int siblingBothSum = siblingLeftSum + siblingRightSum;
+
+                // Update the values of children
+                if (frontNode->left) {
+                    frontNode->left->val = lvlSum[level] - siblingBothSum;
+                    q.push(frontNode->left);
+                }
+                if (frontNode->right) {
+                    frontNode->right->val = lvlSum[level] - siblingBothSum;
+                    q.push(frontNode->right);
+                }
+            }
+            level++;  // move to the next level
+        }
+        return root;
+    }
+    TreeNode* replaceValueInTree(TreeNode* root) {
+        //base case
+        if(!root) return root;
+        vector<int>lvlSum;
+        lvlOrder(root, lvlSum);
+
+        TreeNode* ans = newlvlOrder(root, lvlSum);
+        return ans;
+    }
+};
+/*
+Example 1:
+Input: root = [5,4,9,1,10,null,7]
+Output: [0,0,0,7,7,null,11]
+Explanation: The diagram above shows the initial binary tree and the binary tree after changing the value of each node.
+- Node with value 5 does not have any cousins so its sum is 0.
+- Node with value 4 does not have any cousins so its sum is 0.
+- Node with value 9 does not have any cousins so its sum is 0.
+- Node with value 1 has a cousin with value 7 so its sum is 7.
+- Node with value 10 has a cousin with value 7 so its sum is 7.
+- Node with value 7 has cousins with values 1 and 10 so its sum is 11.
+
+Example 2:
+Input: root = [3,1,2]
+Output: [0,0,0]
+Explanation: The diagram above shows the initial binary tree and the binary tree after changing the value of each node.
+- Node with value 3 does not have any cousins so its sum is 0.
+- Node with value 1 does not have any cousins so its sum is 0.
+- Node with value 2 does not have any cousins so its sum is 0.
+*/
+
+
+//41. MAXIMUM NUMBER OF MOVES IN A GRID                           {T.C = O(N*M), S.C = O(N*M)}
+class Solution {
+public:
+    int dp[1005][1005];
+    vector<vector<int>> directions = {{-1, 1}, {0, 1}, {1, 1}}; // Right-up, right, right-down
+    bool isValid(int i, int j, int n, int m) {
+        return i >= 0 && i < n && j >= 0 && j < m;
+    }
+
+    int dfs(vector<vector<int>>& grid, int i, int j) {
+        int n = grid.size(), m = grid[0].size();
+        int maxMove = 0;
+
+        if (dp[i][j] != -1) return dp[i][j];
+        
+        for (auto it : directions) {
+            int newRow = i + it[0];
+            int newCol = j + it[1];
+            if (isValid(newRow, newCol, n, m) && grid[newRow][newCol] > grid[i][j]) {
+                maxMove = max(maxMove, 1 + dfs(grid, newRow, newCol));
+            }
+        }
+
+        return dp[i][j] = maxMove;
+    }
+
+    int maxMoves(vector<vector<int>>& grid) {
+        memset(dp, -1, sizeof(dp));
+        int n = grid.size(), m = grid[0].size();
+        int maxMove = 0;
+        
+        for (int i = 0; i < n; i++) {         // Start DFS from each cell in the first column
+            maxMove = max(maxMove, dfs(grid, i, 0));        //row(1st only), col (all)
+        }
+        return maxMove;
+    }
+};
+/*
+Example 1:
+Input: grid = [[2,4,3,5],[5,4,9,3],[3,4,2,11],[10,9,13,15]]
+Output: 3
+Explanation: We can start at the cell (0, 0) and make the following moves:
+- (0, 0) -> (0, 1).
+- (0, 1) -> (1, 2).
+- (1, 2) -> (2, 3).
+It can be shown that it is the maximum number of moves that can be made.
+
+Example 2:
+Input: grid = [[3,2,4],[2,1,9],[1,1,7]]
+Output: 0
+Explanation: Starting from any cell in the first column we cannot perform any moves.
+*/
+
+
+//42. LENGHT OF LONGEST INCREASING SUBSEQUENCE (LIS)           {T.C = O(N^2), S.C = O(N)}
+//USING TOP DOWN DP
+class Solution {
+public:
+    int dp[2501][2501];
+    int solveMem(vector<int>&nums , int i, int prev){
+        int n = nums.size();
+        //base case
+        if(i >= n) return 0;
+
+        if(dp[i][prev+1] != -1) return dp[i][prev+1];       //+1 for handle out of bound
+
+        int incl = INT_MIN;                                 //max len
+        if(prev == -1 || nums[i] > nums[prev]){             //1st ele or next greater then prev
+            incl  = 1 + solveMem(nums, i+1, i);             //prev becomes currIdx(i)
+        }
+        int excl = 0 + solveMem(nums, i+1, prev);
+
+        return dp[i][prev+1] = max(incl, excl);
+    }
+    int lengthOfLIS(vector<int>& nums) {
+        memset(dp, -1, sizeof(dp));
+        return solveMem(nums, 0, -1);           //0 = initial index, -1 = prevIdx
+    }
+};
+
+//USING BOTTOM UP DP
+class Solution {
+public:
+    int lengthOfLIS(vector<int>& nums) {
+        int n = nums.size();
+        vector<int>dp(n, 1);                         //initially all dp element 1(min LIS len)
+        
+        int maxLen = 1;                             //atleast 1 element is there
+        for(int i = 0 ; i < n ;i++){                //i = currIdx
+            for(int p = 0 ; p < i ; p++){           //p = prevIdx
+                if(nums[p] < nums[i]){
+                    dp[i] = max(dp[i], 1 + dp[p]);
+                }
+            }
+            maxLen = max(maxLen, dp[i]);
+        }
+        return maxLen;
+    }
+};
+/*
+Example 1:
+Input: nums = [10,9,2,5,3,7,101,18]
+Output: 4
+Explanation: The longest increasing subsequence is [2,3,7,101], therefore the length is 4.
+
+Example 2:
+Input: nums = [0,1,0,3,2,3]
+Output: 4
+
+Example 3:
+Input: nums = [7,7,7,7,7,7,7]
+Output: 1
+*/
+
+
+//43. MINIMUM NUMBER OF REMOVALS TO MAKE MOUNTAIN ARRAY             {T.C = O(N^2), S.C = O(N)}
+class Solution {
+public:
+    vector<int>LIS(vector<int>&nums, int n){
+        vector<int>dp(n, 1);                              //dp == lis
+        for(int i = 0 ; i < n; i++){                      //currIdx
+            for(int p = 0; p < i ; p++){                  //prevIdx
+                if(nums[p] < nums[i]){
+                    dp[i] = max(dp[i], 1 + dp[p]);        //1 + prevValue
+                }
+            }
+        }
+        return dp;
+    }
+    vector<int>LDS(vector<int>&nums, int n){             //just opposite of lis
+        vector<int>dp(n, 1);
+        for(int i = n-1 ; i >= 0 ; i--){
+            for(int p = n-1 ; p > i ; p--){              //lis(0 to i) , lds (n-1 to i)
+                if(nums[p] < nums[i]){
+                    dp[i] = max(dp[i], 1 + dp[p]);
+                }
+            }
+        }
+        return dp;
+    }
+    int minimumMountainRemovals(vector<int>& nums) {
+        int n = nums.size();
+        vector<int>lis = LIS(nums, n);                    //longest increasing subsequence
+        vector<int>lds = LDS(nums, n);                    //longest decreasing subsequence
+        
+        int minRemove = INT_MAX;
+        for(int i = 0 ; i < n ; i++){
+            if(lis[i] > 1 && lds[i] > 1){                //for finding correct mountains formation
+                minRemove = min(minRemove, n- (lis[i] + lds[i]) + 1);
+            }
+        }
+        return minRemove;
+    }
+};
+/*
+Example 1:
+Input: nums = [1,3,1]
+Output: 0
+Explanation: The array itself is a mountain array so we do not need to remove any elements.
+
+Example 2:
+Input: nums = [2,1,1,5,6,2,3,1]
+Output: 3
+Explanation: One solution is to remove the elements at indices 0, 1, and 5, making the array nums = [1,5,6,3,1].
+*/
+
+
+//44. DELETE CHARACTERS TO MAKE FANCY STRINGS                  {T.C = O(N), S.C = O(N)}
+class Solution {
+public:
+    string makeFancyString(string s) {
+        string ans = "";
+        int n = s.length();
+        ans.push_back(s[0]);
+        int count = 1;
+        for(int i = 1; i < n ; i++){
+            if(s[i] == ans.back()){
+                count++;
+                if(count < 3) ans.push_back(s[i]);
+            }else{
+                count = 1;                            //reset count
+                ans.push_back(s[i]);
+            }
+        }
+        return ans;
+    }
+};
+/*
+Example 1:
+Input: s = "leeetcode"
+Output: "leetcode"
+Explanation:
+Remove an 'e' from the first group of 'e's to create "leetcode".
+No three consecutive characters are equal, so return "leetcode".
+
+Example 2:
+Input: s = "aaabaaaa"
+Output: "aabaa"
+Explanation:
+Remove an 'a' from the first group of 'a's to create "aabaaaa".
+Remove two 'a's from the second group of 'a's to create "aabaa".
+No three consecutive characters are equal, so return "aabaa".
+
+Example 3:
+Input: s = "aab"
+Output: "aab"
+Explanation: No three consecutive characters are equal, so return "aab".
+*/
+
+
+//45. CIRCULAR SENTENCE                                         {T.C = O(N), S.C = O(M)}
+class Solution {
+public:
+    bool isCircularSentence(string sentence) {
+        int n = sentence.size();
+        stringstream ss(sentence);
+        string firstWord, prevWord;
+
+        ss >> firstWord;                           //extract first word
+        prevWord = firstWord;
+
+        string word;
+        while(ss >> word){
+            if(prevWord.back() != word.front()) return false;    //match consecutive words
+            prevWord = word;
+        }
+
+        return prevWord.back() == firstWord.front();     //match first and last stream 
+    }
+};
+/*
+Example 1:
+Input: sentence = "leetcode exercises sound delightful"
+Output: true
+Explanation: The words in sentence are ["leetcode", "exercises", "sound", "delightful"].
+- leetcode's last character is equal to exercises's first character.
+- exercises's last character is equal to sound's first character.
+- sound's last character is equal to delightful's first character.
+- delightful's last character is equal to leetcode's first character.
+The sentence is circular.
+
+Example 2:
+Input: sentence = "eetcode"
+Output: true
+Explanation: The words in sentence are ["eetcode"].
+- eetcode's last character is equal to eetcode's first character.
+The sentence is circular.
+
+Example 3:
+Input: sentence = "Leetcode is cool"
+Output: false
+Explanation: The words in sentence are ["Leetcode", "is", "cool"].
+- Leetcode's last character is not equal to is's first character.
+The sentence is not circular.
+*/
+
+
+//46. SORTED MATRIX                                                                       {T.C = O(N^2 LOGN), S.C = O(N^2)}
+class Solution {
+  public:
+    vector<vector<int>> sortedMatrix(int n, vector<vector<int>> mat) {
+        vector<int>ans;
+        for(int i = 0 ; i < n ; i++){
+            for(int j = 0 ; j < n ;j++){
+                ans.push_back(mat[i][j]);
+            }
+        }
+        sort(ans.begin(), ans.end());
+        //till now we got a single sorted array
+        
+        //creating a 2d matrix and push again in mat
+        int index = 0;
+        for(int i = 0 ; i < n ; i++){
+            for(int j = 0 ; j < n ; j++){
+                mat[i][j] = ans[index];
+                index++;
+            }
+        }
+        return mat;
+    }
+};
+/*
+Input:
+N=4
+Mat=[[10,20,30,40],
+[15,25,35,45] 
+[27,29,37,48] 
+[32,33,39,50]]
+Output:
+10 15 20 25 
+27 29 30 32
+33 35 37 39
+40 45 48 50
+Explanation:
+Sorting the matrix gives this result.
+*/
