@@ -2512,7 +2512,7 @@ public:
         for(int i = 0 ; i < n; i++){
             for(int j = i ; j < n ; j++){                         //SUBSTRING STARTING FROM i.
                 if(solveMem(s, i, j)){
-                    if(maxLen < j-i+1){
+                    if(j-i+1 > maxLen){
                         maxLen = j-i+1;
                         startIdx = i;
                     }
@@ -2520,6 +2520,32 @@ public:
             }
         }
         return s.substr(startIdx, maxLen);
+    }
+};
+
+//USING BOTTOM UP DP 
+//(MIK TEMPLATE FOR PALINDROMES(COUNT, LONGEST PALINDROMIC SUBSTRING OR SUBSEQUENCE)) {T.C = O(N^2), S.C = O(N^2)}
+class Solution {
+public:
+    //USING MIK BLUEPRINT
+    int countSubstrings(string s) {
+        int n = s.length();
+        vector<vector<int>>dp(n, vector<int>(n, false));
+        int count = 0;
+
+        for(int l = 1 ; l <= n ; l++){
+            for(int i = 0 ; i+l-1 < n; i++){                  //i+L-1(curr len of substring)
+                int j = i+l-1;
+                if(i == j)   dp[i][j] = true;                            //1 len string
+                else if(i+1 == j) dp[i][j] = (s[i] == s[j]);             //2 len string
+                else{
+                    dp[i][j] = (s[i] == s[j] && dp[i+1][j-1] == true);   //>2 len string
+                }
+
+                if(dp[i][j] == true) count++;
+            }
+        }
+        return count;
     }
 };
 
